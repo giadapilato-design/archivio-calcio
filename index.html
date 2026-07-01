@@ -168,6 +168,24 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   max-width:1240px;margin:20px auto 0;padding:0 24px 30px;
   display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;
 }
+.loading-state{
+  grid-column:1/-1;text-align:center;padding:90px 20px;
+  font-family:'Bebas Neue';letter-spacing:.14em;font-size:18px;color:var(--muted);
+}
+.loading-state .spin{
+  width:36px;height:36px;border:3px solid var(--line);border-top-color:var(--gold);
+  border-radius:50%;margin:0 auto 18px;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-state{
+  grid-column:1/-1;text-align:center;padding:70px 20px;
+  font-family:'Bebas Neue';letter-spacing:.1em;font-size:16px;color:var(--err);
+}
+.error-state button{
+  margin-top:16px;background:var(--gold);color:#1a1500;border:none;
+  font-family:'Bebas Neue';letter-spacing:.08em;padding:10px 22px;
+  border-radius:999px;cursor:pointer;font-size:14px;
+}
 .card{
   background:var(--card);border:1px solid var(--line-s);border-radius:var(--r);
   overflow:hidden;display:flex;flex-direction:column;
@@ -208,6 +226,26 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   font-family:'Bebas Neue';font-size:11px;letter-spacing:.1em;
   color:var(--gold);background:rgba(20,20,20,.7);
   padding:3px 8px;border-radius:4px;border:1px solid var(--line);
+}
+.jersey-type-badge{
+  position:absolute;top:10px;right:10px;z-index:2;
+  font-family:'Bebas Neue';font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  padding:4px 9px;border-radius:4px;
+}
+.jersey-type-badge.worn{
+  background:linear-gradient(135deg,var(--gold-hi),var(--gold));
+  color:#1a1500;font-weight:700;
+  box-shadow:0 0 14px rgba(201,162,75,.35);
+}
+.jersey-type-badge.issued{
+  background:rgba(255,255,255,.08);color:var(--ivory);
+  border:1px solid var(--line-s);
+}
+.jersey-collectible .jersey-silhouette{
+  position:absolute;inset:0;width:100%;height:100%;z-index:0;
+}
+.jersey-collectible .jersey-plate{
+  position:relative;z-index:1;margin-top:auto;
 }
 .kit-bar{
   position:absolute;bottom:0;left:0;right:0;height:3px;
@@ -504,6 +542,8 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
     <button class="chip" aria-pressed="false" data-cat="nameset">Nameset</button>
     <button class="chip" aria-pressed="false" data-cat="patch">Patch</button>
     <button class="chip" aria-pressed="false" data-cat="sponsor">Sponsor</button>
+    <button class="chip" aria-pressed="false" data-cat="matchworn">Match Worn</button>
+    <button class="chip" aria-pressed="false" data-cat="matchissued">Match Issued</button>
   </div>
   <div class="chip-group">
     <select id="filterStagione" class="chip" onchange="onFilterChange()">
@@ -732,6 +772,8 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
           <option value="nameset">Nameset</option>
           <option value="patch">Patch</option>
           <option value="sponsor">Sponsor</option>
+          <option value="matchworn">Match Worn</option>
+          <option value="matchissued">Match Issued</option>
         </select>
         <select id="aFilterImg" onchange="renderAdmin()">
           <option value="">Tutti</option>
@@ -820,450 +862,159 @@ function shipZoneLabel(country){
 }
 
 const PRICES = { nameset:15, patch:7, sponsor:10 };
-const PRODUCTS = [
-  {id:"ns-juventus-home-1995-96-sousa",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"1995-96",descrizione:"SOUSA",prezzo:25.0,stock:1,img:""},
-  {id:"ns-juventus-home-1998-99-ferrara-2",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"1998-99",descrizione:"FERRARA 2",prezzo:10.0,stock:4,img:""},
-  {id:"ns-juventus-home-1998-99-blanchard-18",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"1998-99",descrizione:"BLANCHARD 18",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-away-1998-99-esnaider-19",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"1998-99",descrizione:"ESNAIDER 19",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-away-1998-00-zidane-21",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"1998-00",descrizione:"ZIDANE 21",prezzo:15.0,stock:6,img:""},
-  {id:"ns-juventus-away-1998-99-zambrotta-23",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"1998-99",descrizione:"ZAMBROTTA 23",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-away-1998-00-davids-26",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"1998-00",descrizione:"DAVIDS 26",prezzo:10.0,stock:3,img:""},
-  {id:"ns-juventus-away-1998-99-tudor-28",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"1998-99",descrizione:"TUDOR 28",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-home-2001-02-conte-8-flock",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2001-02",descrizione:"CONTE 8 flock",prezzo:8.0,stock:4,img:""},
-  {id:"ns-juventus-home-2002-03-conte-8-flock",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2002-03",descrizione:"CONTE 8 flock",prezzo:8.0,stock:5,img:""},
-  {id:"ns-juventus-home-3rd-2000-01-conte-8-flock-white",cat:"nameset",squadra:"JUVENTUS HOME/3RD",stagione:"2000-01",descrizione:"CONTE 8 flock WHITE",prezzo:8.0,stock:4,img:""},
-  {id:"ns-juventus-away-2000-02-conte-8-flock-black",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2000-02",descrizione:"CONTE 8 flock BLACK",prezzo:8.0,stock:6,img:""},
-  {id:"ns-juventus-away-2000-02-tudor-5",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2000-02",descrizione:"TUDOR 5",prezzo:12.0,stock:1,img:""},
-  {id:"ns-juventus-away-2001-02-salas-9",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2001-02",descrizione:"SALAS 9",prezzo:12.0,stock:2,img:""},
-  {id:"ns-juventus-away-2003-04-montero-4",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"MONTERO 4",prezzo:8.0,stock:5,img:""},
-  {id:"ns-juventus-away-2003-04-tudor-5",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"TUDOR 5",prezzo:8.0,stock:5,img:""},
-  {id:"ns-juventus-away-2003-04-miccoli-9",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"MICCOLI 9",prezzo:5.0,stock:18,img:""},
-  {id:"ns-juventus-away-2003-04-nedved-11",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"NEDVED 11",prezzo:10.0,stock:4,img:""},
-  {id:"ns-juventus-away-2003-04-trezeguet-17",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"TREZEGUET 17",prezzo:8.0,stock:32,img:""},
-  {id:"ns-juventus-away-2003-04-appiah-18",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"APPIAH 18",prezzo:5.0,stock:20,img:""},
-  {id:"ns-juventus-away-2003-04-zambrotta-19",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"ZAMBROTTA 19",prezzo:5.0,stock:1,img:""},
-  {id:"ns-juventus-away-2003-04-di-vaio-20",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"DI VAIO 20",prezzo:5.0,stock:11,img:""},
-  {id:"ns-juventus-away-2003-04-le-grottaglie-23",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"LE GROTTAGLIE 23",prezzo:5.0,stock:16,img:""},
-  {id:"ns-juventus-away-2003-04-davids-26",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2003-04",descrizione:"DAVIDS 26",prezzo:8.0,stock:14,img:""},
-  {id:"ns-juventus-3rd-2003-04-miccoli-9",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2003-04",descrizione:"MICCOLI 9",prezzo:5.0,stock:5,img:""},
-  {id:"ns-juventus-3rd-2003-04-appiah-18",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2003-04",descrizione:"APPIAH 18",prezzo:5.0,stock:4,img:""},
-  {id:"ns-juventus-3rd-2003-04-le-grottaglie-23",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2003-04",descrizione:"LE GROTTAGLIE 23",prezzo:5.0,stock:9,img:""},
-  {id:"ns-juventus-home-2004-05-tacchinardi-3",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-05",descrizione:"TACCHINARDI 3",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-home-2004-05-montero-4",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-05",descrizione:"MONTERO 4",prezzo:10.0,stock:4,img:""},
-  {id:"ns-juventus-home-2004-05-tudor-5",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-05",descrizione:"TUDOR 5",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-away-cl-2004-05-del-piero-10",cat:"nameset",squadra:"JUVENTUS AWAY CL",stagione:"2004-05",descrizione:"DEL PIERO 10",prezzo:45.0,stock:5,img:""},
-  {id:"ns-juventus-home-2005-06-birindelli-2",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2005-06",descrizione:"BIRINDELLI 2",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-home-2005-06-vieira-4",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2005-06",descrizione:"VIEIRA 4",prezzo:10.0,stock:25,img:""},
-  {id:"ns-juventus-home-2004-06-pessotto-7",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"PESSOTTO 7",prezzo:12.0,stock:1,img:""},
-  {id:"ns-juventus-home-2004-06-emerson-8",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"EMERSON 8",prezzo:12.0,stock:4,img:""},
-  {id:"ns-juventus-home-2004-06-ibrahimovic-9",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"IBRAHIMOVIC 9",prezzo:20.0,stock:25,img:""},
-  {id:"ns-juventus-home-2004-06-del-piero-10",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"DEL PIERO 10",prezzo:50.0,stock:4,img:""},
-  {id:"ns-juventus-home-2004-06-nedved-11",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"NEDVED 11",prezzo:40.0,stock:10,img:""},
-  {id:"ns-juventus-home-2005-06-balzaretti-14",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2005-06",descrizione:"BALZARETTI 14",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-home-2004-06-camoranesi-16",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"CAMORANESI 16",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-home-2004-06-trezeguet-17",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"TREZEGUET 17",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-home-2005-06-zambrotta-19",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2005-06",descrizione:"ZAMBROTTA 19",prezzo:15.0,stock:6,img:""},
-  {id:"ns-juventus-home-2005-06-tacchinardi-20",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2005-06",descrizione:"TACCHINARDI 20",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-home-2004-06-thuram-21",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"THURAM 21",prezzo:25.0,stock:17,img:""},
-  {id:"ns-juventus-home-2004-06-zalayeta-25",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2004-06",descrizione:"ZALAYETA 25",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-away-2005-06-vieira-4",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2005-06",descrizione:"VIEIRA 4",prezzo:25.0,stock:7,img:""},
-  {id:"ns-juventus-away-2005-06-emerson-8",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2005-06",descrizione:"EMERSON 8",prezzo:15.0,stock:5,img:""},
-  {id:"ns-juventus-away-2005-06-del-piero-10",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2005-06",descrizione:"DEL PIERO 10",prezzo:50.0,stock:2,img:""},
-  {id:"ns-juventus-away-2005-06-nedved-11",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2005-06",descrizione:"NEDVED 11",prezzo:40.0,stock:2,img:""},
-  {id:"ns-juventus-away-2005-06-camoranesi-16",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2005-06",descrizione:"CAMORANESI 16",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-away-2005-06-trezeguet-17",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2005-06",descrizione:"TREZEGUET 17",prezzo:30.0,stock:6,img:""},
-  {id:"ns-juventus-home-2007-08-iaquinta-9",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2007-08",descrizione:"IAQUINTA 9",prezzo:12.0,stock:2,img:""},
-  {id:"ns-juventus-home-2007-08-nedved-11",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2007-08",descrizione:"NEDVED 11",prezzo:25.0,stock:1,img:""},
-  {id:"ns-juventus-home-2007-08-camoranesi-16",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2007-08",descrizione:"CAMORANESI 16",prezzo:18.0,stock:9,img:""},
-  {id:"ns-juventus-home-2007-08-trezeguet-17",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2007-08",descrizione:"TREZEGUET 17",prezzo:20.0,stock:10,img:""},
-  {id:"ns-juventus-home-2008-10-felipe-melo-4",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2008-10",descrizione:"FELIPE MELO 4",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-home-2008-10-amauri-8",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2008-10",descrizione:"AMAURI 8",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-home-2008-10-del-piero-10",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2008-10",descrizione:"DEL PIERO 10",prezzo:40.0,stock:10,img:""},
-  {id:"ns-juventus-home-2008-10-sissoko-22",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2008-10",descrizione:"SISSOKO 22",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-home-2008-10-diego-28",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2008-10",descrizione:"DIEGO 28",prezzo:10.0,stock:3,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-buffon-1",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"BUFFON 1",prezzo:30.0,stock:2,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-felipe-melo-4",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"FELIPE MELO 4",prezzo:10.0,stock:9,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-amauri-8",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"AMAURI 8",prezzo:10.0,stock:2,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-iaquinta-9",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"IAQUINTA 9",prezzo:10.0,stock:4,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-del-piero-10",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"DEL PIERO 10",prezzo:40.0,stock:4,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-giovinco-20",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"GIOVINCO 20",prezzo:10.0,stock:3,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-sissoko-22",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"SISSOKO 22",prezzo:10.0,stock:15,img:""},
-  {id:"ns-juventus-away-3rd-2009-10-grosso-6",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2009-10",descrizione:"GROSSO 6",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-away-3rd-2008-10-diego-28",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2008-10",descrizione:"DIEGO 28",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-home-2010-12-caceres-4",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2010-12",descrizione:"CACERES 4",prezzo:10.0,stock:1,img:""},
-  {id:"ns-juventus-home-2010-12-marchisio-8",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2010-12",descrizione:"MARCHISIO 8",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-home-2010-12-del-piero-10",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2010-12",descrizione:"DEL PIERO 10",prezzo:50.0,stock:13,img:""},
-  {id:"ns-juventus-home-2010-12-bonucci-19",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2010-12",descrizione:"BONUCCI 19",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-home-2010-12-pirlo-21",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2010-12",descrizione:"PIRLO 21",prezzo:40.0,stock:1,img:""},
-  {id:"ns-juventus-away-2010-12-marchisio-8",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2010-12",descrizione:"MARCHISIO 8",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-home-2012-13-pogba-6",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2012-13",descrizione:"POGBA 6",prezzo:40.0,stock:1,img:""},
-  {id:"ns-juventus-home-2012-13-marchisio-8",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2012-13",descrizione:"MARCHISIO 8",prezzo:20.0,stock:2,img:""},
-  {id:"ns-juventus-3rd-pink-2012-13-matri-32",cat:"nameset",squadra:"JUVENTUS 3RD pink",stagione:"2012-13",descrizione:"MATRI 32",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-away-2013-14-llorente-14",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2013-14",descrizione:"LLORENTE 14",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-away-3rd-2012-14-buffon-1",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2012-14",descrizione:"BUFFON 1",prezzo:50.0,stock:2,img:""},
-  {id:"ns-juventus-away-3rd-2012-14-chiellini-3",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2012-14",descrizione:"CHIELLINI 3",prezzo:30.0,stock:9,img:""},
-  {id:"ns-juventus-away-3rd-2012-14-marchisio-8",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2012-14",descrizione:"MARCHISIO 8",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-away-3rd-2012-14-vucinic-9",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2012-14",descrizione:"VUCINIC 9",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-away-3rd-2012-14-pirlo-21",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2012-14",descrizione:"PIRLO 21",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-away-3rd-2012-14-vidal-23",cat:"nameset",squadra:"JUVENTUS AWAY/3RD",stagione:"2012-14",descrizione:"VIDAL 23",prezzo:30.0,stock:2,img:""},
-  {id:"ns-juventus-home-away-2015-17-buffon-1-black",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"BUFFON 1 BLACK",prezzo:40.0,stock:11,img:""},
-  {id:"ns-juventus-home-away-2015-17-buffon-1-white",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"BUFFON 1 WHITE",prezzo:40.0,stock:17,img:""},
-  {id:"ns-juventus-home-away-2015-17-chiellini-3",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"CHIELLINI 3",prezzo:30.0,stock:52,img:""},
-  {id:"ns-juventus-home-away-2015-17-pjanic-5",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"PJANIC 5",prezzo:10.0,stock:36,img:""},
-  {id:"ns-juventus-home-away-2015-17-khedira-6",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"KHEDIRA 6",prezzo:10.0,stock:52,img:""},
-  {id:"ns-juventus-home-away-2015-17-cuadrado-7",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"CUADRADO 7",prezzo:10.0,stock:23,img:""},
-  {id:"ns-juventus-home-away-2015-17-marchisio-8",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"MARCHISIO 8",prezzo:30.0,stock:31,img:""},
-  {id:"ns-juventus-home-away-2015-17-alex-sandro-12",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2015-17",descrizione:"ALEX SANDRO 12",prezzo:40.0,stock:5,img:""},
-  {id:"ns-juventus-away-2016-17-chiellini-3",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"CHIELLINI 3",prezzo:15.0,stock:30,img:""},
-  {id:"ns-juventus-away-2016-17-benatia-4",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"BENATIA 4",prezzo:12.0,stock:2,img:""},
-  {id:"ns-juventus-away-2016-17-pjanic-5",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"PJANIC 5",prezzo:10.0,stock:34,img:""},
-  {id:"ns-juventus-away-2016-17-khedira-6",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"KHEDIRA 6",prezzo:12.0,stock:3,img:""},
-  {id:"ns-juventus-away-2016-17-quadrado-7",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"QUADRADO 7",prezzo:12.0,stock:2,img:""},
-  {id:"ns-juventus-away-2016-17-marchisio-8",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"MARCHISIO 8",prezzo:12.0,stock:33,img:""},
-  {id:"ns-juventus-away-2016-17-higuain-9",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"HIGUAIN 9",prezzo:15.0,stock:14,img:""},
-  {id:"ns-juventus-away-2016-17-dybala-21",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"DYBALA 21",prezzo:30.0,stock:3,img:""},
-  {id:"ns-juventus-away-2016-17-evra-33",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2016-17",descrizione:"EVRA 33",prezzo:12.0,stock:3,img:""},
-  {id:"ns-juventus-home-2017-18-pjanic-5",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2017-18",descrizione:"PJANIC 5",prezzo:15.0,stock:9,img:""},
-  {id:"ns-juventus-home-2017-18-marchisio-8",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2017-18",descrizione:"MARCHISIO 8",prezzo:30.0,stock:3,img:""},
-  {id:"ns-juventus-home-2017-18-higuain-9",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2017-18",descrizione:"HIGUAIN 9",prezzo:15.0,stock:15,img:""},
-  {id:"ns-juventus-home-2017-18-pjaca-20",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2017-18",descrizione:"PJACA 20",prezzo:15.0,stock:5,img:""},
-  {id:"ns-juventus-home-2017-18-bernardeschi-33",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2017-18",descrizione:"BERNARDESCHI 33",prezzo:15.0,stock:6,img:""},
-  {id:"ns-juventus-away-2017-18-higuain-9",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2017-18",descrizione:"HIGUAIN 9",prezzo:15.0,stock:52,img:""},
-  {id:"ns-juventus-gk-2018-19-szczesny-1-white",cat:"nameset",squadra:"JUVENTUS GK",stagione:"2018-19",descrizione:"SZCZESNY 1 white",prezzo:20.0,stock:8,img:""},
-  {id:"ns-juventus-home-away-2018-19-ronaldo-7-cygames",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2018-19",descrizione:"RONALDO 7 + CYGAMES",prezzo:50.0,stock:9,img:""},
-  {id:"ns-juventus-home-away-2018-19-dybala-7-cygames",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2018-19",descrizione:"DYBALA 7 + CYGAMES",prezzo:35.0,stock:11,img:""},
-  {id:"ns-juventus-home-away-2018-19-mandzukic-17-cygames",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2018-19",descrizione:"MANDZUKIC 17 + CYGAMES",prezzo:40.0,stock:1,img:""},
-  {id:"ns-juventus-home-away-2018-19-emre-can-23-cygames",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2018-19",descrizione:"EMRE CAN 23 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-home-away-2018-19-bernardeschi-cygames",cat:"nameset",squadra:"JUVENTUS HOME/AWAY",stagione:"2018-19",descrizione:"BERNARDESCHI + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-2018-19-chiellini-3-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"CHIELLINI 3 + CYGAMES",prezzo:20.0,stock:4,img:""},
-  {id:"ns-juventus-3rd-2018-19-pjanic-5-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"PJANIC 5 + CYGAMES",prezzo:8.0,stock:40,img:""},
-  {id:"ns-juventus-3rd-2018-19-khedira-6-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"KHEDIRA 6 + CYGAMES",prezzo:8.0,stock:9,img:""},
-  {id:"ns-juventus-3rd-2018-19-ronaldo-7-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"RONALDO 7 + CYGAMES",prezzo:10.0,stock:491,img:""},
-  {id:"ns-juventus-3rd-2018-19-dybala-10-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"DYBALA 10 + CYGAMES",prezzo:20.0,stock:15,img:""},
-  {id:"ns-juventus-3rd-2018-19-barzagli-15-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"BARZAGLI 15 + CYGAMES",prezzo:15.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-2018-19-quadrado-16-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"QUADRADO 16 + CYGAMES",prezzo:12.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-2018-19-mandzukic-17-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"MANDZUKIC 17 + CYGAMES",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-2018-19-bonucci-19-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"BONUCCI 19 + CYGAMES",prezzo:15.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-2018-19-joao-cancelo-20-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"JOAO CANCELO 20 + CYGAMES",prezzo:12.0,stock:9,img:""},
-  {id:"ns-juventus-3rd-2018-19-emre-can-23-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"EMRE CAN 23 + CYGAMES",prezzo:12.0,stock:5,img:""},
-  {id:"ns-juventus-3rd-2018-19-bentancur-30-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"BENTANCUR 30 + CYGAMES",prezzo:12.0,stock:5,img:""},
-  {id:"ns-juventus-3rd-2018-19-bernardeschi-33-cygames",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2018-19",descrizione:"BERNARDESCHI 33 + CYGAMES",prezzo:12.0,stock:4,img:""},
-  {id:"ns-juventus-gk-2019-20-szczesny-1-white",cat:"nameset",squadra:"JUVENTUS GK",stagione:"2019-20",descrizione:"SZCZESNY 1 white",prezzo:20.0,stock:9,img:""},
-  {id:"ns-juventus-home-3rd-2019-20-de-ligt-4",cat:"nameset",squadra:"JUVENTUS HOME/3RD",stagione:"2019-20",descrizione:"DE LIGT 4",prezzo:20.0,stock:76,img:""},
-  {id:"ns-juventus-home-3rd-2019-20-pjanic-5",cat:"nameset",squadra:"JUVENTUS HOME/3RD",stagione:"2019-20",descrizione:"PJANIC 5",prezzo:20.0,stock:3,img:""},
-  {id:"ns-juventus-home-3rd-2019-20-ronaldo-7",cat:"nameset",squadra:"JUVENTUS HOME/3RD",stagione:"2019-20",descrizione:"RONALDO 7",prezzo:40.0,stock:26,img:""},
-  {id:"ns-juventus-home-3rd-2019-20-ramsey-8",cat:"nameset",squadra:"JUVENTUS HOME/3RD",stagione:"2019-20",descrizione:"RAMSEY 8",prezzo:20.0,stock:3,img:""},
-  {id:"ns-juventus-home-3rd-2019-20-dybala-10",cat:"nameset",squadra:"JUVENTUS HOME/3RD",stagione:"2019-20",descrizione:"DYBALA 10",prezzo:25.0,stock:10,img:""},
-  {id:"ns-juventus-home-3rd-2019-20-bentancur-30",cat:"nameset",squadra:"JUVENTUS HOME/3RD",stagione:"2019-20",descrizione:"BENTANCUR 30",prezzo:15.0,stock:10,img:""},
-  {id:"ns-juventus-away-2019-20-de-ligt-4",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2019-20",descrizione:"DE LIGT 4",prezzo:15.0,stock:1,img:""},
-  {id:"ns-juventus-away-2019-20-ronaldo-7",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2019-20",descrizione:"RONALDO 7",prezzo:20.0,stock:130,img:""},
-  {id:"ns-juventus-away-2019-20-bernardeschi-33",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2019-20",descrizione:"BERNARDESCHI 33",prezzo:15.0,stock:2,img:""},
-  {id:"ns-juventus-home-3rd-4th-black-2020-24-szczesny-1",cat:"nameset",squadra:"JUVENTUS HOME/3RD/4TH BLACK",stagione:"2020-24",descrizione:"SZCZESNY 1",prezzo:30.0,stock:4,img:""},
-  {id:"ns-juventus-home-3rd-black-2020-21-bentancur-30",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-21",descrizione:"BENTANCUR 30",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-home-3rd-black-2020-21-bernardeschi-33",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-21",descrizione:"BERNARDESCHI 33",prezzo:20.0,stock:2,img:""},
-  {id:"ns-juventus-away-grey-2020-21-chiellini-3-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"CHIELLINI 3 + CYGAMES",prezzo:30.0,stock:4,img:""},
-  {id:"ns-juventus-away-grey-2020-21-de-ligt-4-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"DE LIGT 4 + CYGAMES",prezzo:30.0,stock:2,img:""},
-  {id:"ns-juventus-away-grey-2020-21-arthur-5-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"ARTHUR 5 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-away-grey-2020-21-ramsey-8-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"RAMSEY 8 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-away-grey-2020-21-morata-9-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"MORATA 9 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-away-grey-2020-21-dybala-10-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"DYBALA 10 + CYGAMES",prezzo:30.0,stock:8,img:""},
-  {id:"ns-juventus-away-grey-2020-21-danilo-13-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"DANILO 13 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-away-grey-2020-21-rabiot-25-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"RABIOT 25 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-away-grey-2020-21-bernardeschi-33-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"BERNARDESCHI 33 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-away-grey-2020-21-kulusevski-44-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"KULUSEVSKI 44 + CYGAMES",prezzo:30.0,stock:2,img:""},
-  {id:"ns-juventus-home-3rd-black-2020-22-de-ligt-4",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-22",descrizione:"DE LIGT 4",prezzo:25.0,stock:4,img:""},
-  {id:"ns-juventus-home-3rd-black-2020-22-morata-9",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-22",descrizione:"MORATA 9",prezzo:25.0,stock:10,img:""},
-  {id:"ns-juventus-home-3rd-black-2020-22-chiesa-22",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-22",descrizione:"CHIESA 22",prezzo:25.0,stock:7,img:""},
-  {id:"ns-juventus-home-3rd-black-2020-23-rabiot-25",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-23",descrizione:"RABIOT 25",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-home-black-2021-22-vlahovic-7",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"VLAHOVIC 7",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-home-black-2021-22-bernardeschi-20",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"BERNARDESCHI 20",prezzo:25.0,stock:1,img:""},
-  {id:"ns-juventus-home-black-2021-22-fagioli-34",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"FAGIOLI 34",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-home-black-2021-22-soule-46",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"SOULE' 46",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-chiellini-3-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"CHIELLINI 3 + CYGAMES",prezzo:30.0,stock:3,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-ronaldo-7-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"RONALDO 7 + CYGAMES",prezzo:40.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-morata-9-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"MORATA 9 + CYGAMES",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-dybala-10-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"DYBALA 10 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-mckennie-14-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"McKENNIE 14 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-locatelli-27-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"LOCATELLI 27 + CYGAMES",prezzo:30.0,stock:5,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-zakaria-28-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"ZAKARIA 28 + CYGAMES",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-3rd-blue-2021-22-kulusevski-44-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"KULUSEVSKI 44 + CYGAMES",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-home-black-2021-23-danilo-6",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-23",descrizione:"DANILO 6",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-home-black-2021-23-perin-36",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-23",descrizione:"PERIN 36",prezzo:20.0,stock:4,img:""},
-  {id:"ns-juventus-home-black-2022-23-bremer-3",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"BREMER 3",prezzo:25.0,stock:8,img:""},
-  {id:"ns-juventus-home-black-2022-23-locatelli-5",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"LOCATELLI 5",prezzo:25.0,stock:5,img:""},
-  {id:"ns-juventus-home-black-2022-23-chiesa-7",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"CHIESA 7",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-home-black-2022-23-mckennie-8",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"McKENNIE 8",prezzo:25.0,stock:9,img:""},
-  {id:"ns-juventus-home-black-2022-23-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:10,img:""},
-  {id:"ns-juventus-home-black-2022-23-di-maria-22",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"DI MARIA 22",prezzo:25.0,stock:9,img:""},
-  {id:"ns-juventus-home-black-2022-23-fagioli-44",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"FAGIOLI 44",prezzo:25.0,stock:1,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-bremer-3",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"BREMER 3",prezzo:30.0,stock:2,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-gatti-4",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"GATTI 4",prezzo:20.0,stock:6,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-danilo-6",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"DANILO 6",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-chiesa-7",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"CHIESA 7",prezzo:20.0,stock:9,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"VLAHOVIC 9",prezzo:18.0,stock:32,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-milik-14",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"MILIK 14",prezzo:20.0,stock:4,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-mckennie-16",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"McKENNIE 16",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-fagioli-21",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"FAGIOLI 21",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-t-weah-22",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"T.WEAH 22",prezzo:20.0,stock:8,img:""},
-  {id:"ns-juventus-home-white-yellow-2023-24-rabiot-25",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"RABIOT 25",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-gatti-4",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"GATTI 4",prezzo:20.0,stock:7,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-danilo-6",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"DANILO 6",prezzo:25.0,stock:4,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-chiesa-7",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"CHIESA 7",prezzo:20.0,stock:11,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-vlahovic-9",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-milik-14",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"MILIK 14",prezzo:20.0,stock:8,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-mckennie-16",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"McKENNIE 16",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-fagioli-21",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"FAGIOLI 21",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-away-black-silver-2023-24-t-weah-22",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"T.WEAH 22",prezzo:20.0,stock:8,img:""},
-  {id:"ns-juventus-away-white-2021-22-chiellini-3",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"CHIELLINI 3",prezzo:25.0,stock:6,img:""},
-  {id:"ns-juventus-away-white-2021-22-de-ligt-4",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"DE LIGT 4",prezzo:20.0,stock:5,img:""},
-  {id:"ns-juventus-away-white-2021-22-vlahovic-7",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"VLAHOVIC 7",prezzo:25.0,stock:8,img:""},
-  {id:"ns-juventus-away-white-2021-22-morata-9",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"MORATA 9",prezzo:20.0,stock:6,img:""},
-  {id:"ns-juventus-away-white-2021-22-dybala-10",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"DYBALA 10",prezzo:25.0,stock:8,img:""},
-  {id:"ns-juventus-away-white-2021-22-chiesa-22",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"CHIESA 22",prezzo:20.0,stock:3,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2021-24-danilo-6-lettering",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2021-24",descrizione:"DANILO 6 LETTERING",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2022-24-chiesa-7",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"CHIESA 7",prezzo:25.0,stock:1,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2022-24-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"VLAHOVIC 9",prezzo:20.0,stock:22,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2022-24-pogba-10",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"POGBA 10",prezzo:20.0,stock:10,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2022-24-milik-14",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"MILIK 14",prezzo:20.0,stock:10,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2023-24-yildiz-15",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2023-24",descrizione:"YILDIZ 15",prezzo:30.0,stock:14,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2024-25-perin-1",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2024-25",descrizione:"PERIN 1",prezzo:20.0,stock:5,img:""},
-  {id:"ns-juventus-home-away-3rd-white-2024-25-di-gregorio-29",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2024-25",descrizione:"DI GREGORIO 29",prezzo:20.0,stock:5,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-gatti-4",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"GATTI 4",prezzo:20.0,stock:10,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-locatelli-5",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"LOCATELLI 5",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"F.CONCEICAO 7",prezzo:25.0,stock:15,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-koopmeiners-8",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"KOOPMEINERS 8",prezzo:20.0,stock:7,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"VLAHOVIC 9",prezzo:20.0,stock:13,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-n-gonzales-11",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"N.GONZALES 11",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-thuram-19",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"THURAM 19",prezzo:25.0,stock:8,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-kolo-muani-20",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"KOLO MUANI 20",prezzo:20.0,stock:18,img:""},
-  {id:"ns-juventus-home-away-black-2024-25-douglas-luiz-26",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"DOUGLAS LUIZ 26",prezzo:20.0,stock:5,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-gatti-4",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"GATTI 4",prezzo:20.0,stock:1,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"F.CONCEICAO 7",prezzo:25.0,stock:13,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-koopmeiners-8",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"KOOPMEINERS 8",prezzo:20.0,stock:5,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-vlahovic-9",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"VLAHOVIC 9",prezzo:20.0,stock:10,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-yildiz-15",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"YILDIZ 15",prezzo:30.0,stock:10,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-n-gonzales-11",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"N.GONZALES 11",prezzo:20.0,stock:4,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-thuram-19",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"THURAM 19",prezzo:25.0,stock:7,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-kolo-muani-20",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"KOLO MUANI 20",prezzo:25.0,stock:5,img:""},
-  {id:"ns-juventus-3rd-gold-2024-25-douglas-luiz-26",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"DOUGLAS LUIZ 26",prezzo:20.0,stock:3,img:""},
-  {id:"ns-juventus-home-2025-26-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"F,CONCEICAO 7",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-home-2025-26-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:5,img:""},
-  {id:"ns-juventus-home-2025-26-yildiz-15",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"YILDIZ 15",prezzo:30.0,stock:10,img:""},
-  {id:"ns-juventus-home-2025-26-e-zhegrova-11",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"E.ZHEGROVA 11",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-home-2025-26-thuram-19",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"THURAM 19",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-home-2025-26-joao-mario-25",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"JOAO MARIO 25",prezzo:20.0,stock:3,img:""},
-  {id:"ns-juventus-home-2025-26-j-david-30",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"J.DAVID 30",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-away-2025-26-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"F,CONCEICAO 7",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-away-2025-26-vlahovic-9",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-away-2025-26-yildiz-15",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"YILDIZ 15",prezzo:30.0,stock:9,img:""},
-  {id:"ns-juventus-away-2025-26-e-zhegrova-11",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"E.ZHEGROVA 11",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-away-2025-26-j-david-30",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"J.DAVID 30",prezzo:25.0,stock:2,img:""},
-  {id:"ns-juventus-3rd-2025-26-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"F,CONCEICAO 7",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-3rd-2025-26-vlahovic-9",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-3rd-2025-26-yildiz-15",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"YILDIZ 15",prezzo:30.0,stock:8,img:""},
-  {id:"ns-juventus-3rd-2025-26-e-zhegrova-11",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"E.ZHEGROVA 11",prezzo:25.0,stock:3,img:""},
-  {id:"ns-juventus-3rd-2025-26-j-david-30",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"J.DAVID 30",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-home-3rd-4th-black-2020-24-szczesny-1",cat:"nameset",squadra:"JUVENTUS HOME/3RD/4TH BLACK",stagione:"2020-24",descrizione:"SZCZESNY 1",prezzo:30.0,stock:4,img:""},
-  {id:"ns2-juventus-home-3rd-black-2020-21-bentancur-30",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-21",descrizione:"BENTANCUR 30",prezzo:20.0,stock:1,img:""},
-  {id:"ns2-juventus-home-3rd-black-2020-21-bernardeschi-33",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-21",descrizione:"BERNARDESCHI 33",prezzo:20.0,stock:2,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-chiellini-3-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"CHIELLINI 3 + CYGAMES",prezzo:30.0,stock:4,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-de-ligt-4-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"DE LIGT 4 + CYGAMES",prezzo:30.0,stock:2,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-arthur-5-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"ARTHUR 5 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-ramsey-8-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"RAMSEY 8 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-morata-9-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"MORATA 9 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-dybala-10-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"DYBALA 10 + CYGAMES",prezzo:30.0,stock:8,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-danilo-13-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"DANILO 13 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-rabiot-25-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"RABIOT 25 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-bernardeschi-33-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"BERNARDESCHI 33 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-away-grey-2020-21-kulusevski-44-cygames",cat:"nameset",squadra:"JUVENTUS AWAY GREY",stagione:"2020-21",descrizione:"KULUSEVSKI 44 + CYGAMES",prezzo:30.0,stock:2,img:""},
-  {id:"ns2-juventus-home-3rd-black-2020-22-de-ligt-4",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-22",descrizione:"DE LIGT 4",prezzo:25.0,stock:4,img:""},
-  {id:"ns2-juventus-home-3rd-black-2020-22-morata-9",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-22",descrizione:"MORATA 9",prezzo:25.0,stock:10,img:""},
-  {id:"ns2-juventus-home-3rd-black-2020-22-chiesa-22",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-22",descrizione:"CHIESA 22",prezzo:25.0,stock:7,img:""},
-  {id:"ns2-juventus-home-3rd-black-2020-23-rabiot-25",cat:"nameset",squadra:"JUVENTUS HOME/3RD BLACK",stagione:"2020-23",descrizione:"RABIOT 25",prezzo:25.0,stock:6,img:""},
-  {id:"ns2-juventus-home-black-2021-22-vlahovic-7",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"VLAHOVIC 7",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-home-black-2021-22-bernardeschi-20",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"BERNARDESCHI 20",prezzo:25.0,stock:1,img:""},
-  {id:"ns2-juventus-home-black-2021-22-fagioli-34",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"FAGIOLI 34",prezzo:20.0,stock:1,img:""},
-  {id:"ns2-juventus-home-black-2021-22-soule-46",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-22",descrizione:"SOULE' 46",prezzo:20.0,stock:1,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-chiellini-3-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"CHIELLINI 3 + CYGAMES",prezzo:30.0,stock:3,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-ronaldo-7-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"RONALDO 7 + CYGAMES",prezzo:40.0,stock:1,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-morata-9-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"MORATA 9 + CYGAMES",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-dybala-10-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"DYBALA 10 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-mckennie-14-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"McKENNIE 14 + CYGAMES",prezzo:30.0,stock:1,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-locatelli-27-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"LOCATELLI 27 + CYGAMES",prezzo:30.0,stock:5,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-zakaria-28-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"ZAKARIA 28 + CYGAMES",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-3rd-blue-2021-22-kulusevski-44-cygames",cat:"nameset",squadra:"JUVENTUS 3RD BLUE",stagione:"2021-22",descrizione:"KULUSEVSKI 44 + CYGAMES",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-home-black-2021-23-danilo-6",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-23",descrizione:"DANILO 6",prezzo:25.0,stock:6,img:""},
-  {id:"ns2-juventus-home-black-2021-23-perin-36",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2021-23",descrizione:"PERIN 36",prezzo:20.0,stock:4,img:""},
-  {id:"ns2-juventus-home-black-2022-23-bremer-3",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"BREMER 3",prezzo:25.0,stock:8,img:""},
-  {id:"ns2-juventus-home-black-2022-23-locatelli-5",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"LOCATELLI 5",prezzo:25.0,stock:5,img:""},
-  {id:"ns2-juventus-home-black-2022-23-chiesa-7",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"CHIESA 7",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-home-black-2022-23-mckennie-8",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"McKENNIE 8",prezzo:25.0,stock:9,img:""},
-  {id:"ns2-juventus-home-black-2022-23-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:10,img:""},
-  {id:"ns2-juventus-home-black-2022-23-di-maria-22",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"DI MARIA 22",prezzo:25.0,stock:9,img:""},
-  {id:"ns2-juventus-home-black-2022-23-fagioli-44",cat:"nameset",squadra:"JUVENTUS HOME BLACK",stagione:"2022-23",descrizione:"FAGIOLI 44",prezzo:25.0,stock:1,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-bremer-3",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"BREMER 3",prezzo:30.0,stock:2,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-gatti-4",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"GATTI 4",prezzo:20.0,stock:6,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-danilo-6",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"DANILO 6",prezzo:25.0,stock:6,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-chiesa-7",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"CHIESA 7",prezzo:20.0,stock:9,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"VLAHOVIC 9",prezzo:18.0,stock:32,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-milik-14",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"MILIK 14",prezzo:20.0,stock:4,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-mckennie-16",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"McKENNIE 16",prezzo:25.0,stock:6,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-fagioli-21",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"FAGIOLI 21",prezzo:20.0,stock:1,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-t-weah-22",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"T.WEAH 22",prezzo:20.0,stock:8,img:""},
-  {id:"ns2-juventus-home-white-yellow-2023-24-rabiot-25",cat:"nameset",squadra:"JUVENTUS HOME WHITE/YELLOW",stagione:"2023-24",descrizione:"RABIOT 25",prezzo:25.0,stock:6,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-gatti-4",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"GATTI 4",prezzo:20.0,stock:7,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-danilo-6",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"DANILO 6",prezzo:25.0,stock:4,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-chiesa-7",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"CHIESA 7",prezzo:20.0,stock:11,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-vlahovic-9",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:6,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-milik-14",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"MILIK 14",prezzo:20.0,stock:8,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-mckennie-16",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"McKENNIE 16",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-fagioli-21",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"FAGIOLI 21",prezzo:20.0,stock:1,img:""},
-  {id:"ns2-juventus-away-black-silver-2023-24-t-weah-22",cat:"nameset",squadra:"JUVENTUS AWAY BLACK/SILVER",stagione:"2023-24",descrizione:"T.WEAH 22",prezzo:20.0,stock:8,img:""},
-  {id:"ns2-juventus-away-white-2021-22-chiellini-3",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"CHIELLINI 3",prezzo:25.0,stock:6,img:""},
-  {id:"ns2-juventus-away-white-2021-22-de-ligt-4",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"DE LIGT 4",prezzo:20.0,stock:5,img:""},
-  {id:"ns2-juventus-away-white-2021-22-vlahovic-7",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"VLAHOVIC 7",prezzo:25.0,stock:8,img:""},
-  {id:"ns2-juventus-away-white-2021-22-morata-9",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"MORATA 9",prezzo:20.0,stock:6,img:""},
-  {id:"ns2-juventus-away-white-2021-22-dybala-10",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"DYBALA 10",prezzo:25.0,stock:8,img:""},
-  {id:"ns2-juventus-away-white-2021-22-chiesa-22",cat:"nameset",squadra:"JUVENTUS AWAY WHITE",stagione:"2021-22",descrizione:"CHIESA 22",prezzo:20.0,stock:3,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2021-24-danilo-6-lettering",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2021-24",descrizione:"DANILO 6 LETTERING",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2022-24-chiesa-7",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"CHIESA 7",prezzo:25.0,stock:1,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2022-24-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"VLAHOVIC 9",prezzo:20.0,stock:22,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2022-24-pogba-10",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"POGBA 10",prezzo:20.0,stock:10,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2022-24-milik-14",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2022-24",descrizione:"MILIK 14",prezzo:20.0,stock:10,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2023-24-yildiz-15",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2023-24",descrizione:"YILDIZ 15",prezzo:30.0,stock:14,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2024-25-perin-1",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2024-25",descrizione:"PERIN 1",prezzo:20.0,stock:5,img:""},
-  {id:"ns2-juventus-home-away-3rd-white-2024-25-di-gregorio-29",cat:"nameset",squadra:"JUVENTUS HOME/AWAY/3RD WHITE",stagione:"2024-25",descrizione:"DI GREGORIO 29",prezzo:20.0,stock:5,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-gatti-4",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"GATTI 4",prezzo:20.0,stock:10,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-locatelli-5",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"LOCATELLI 5",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"F.CONCEICAO 7",prezzo:25.0,stock:15,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-koopmeiners-8",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"KOOPMEINERS 8",prezzo:20.0,stock:7,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"VLAHOVIC 9",prezzo:20.0,stock:13,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-n-gonzales-11",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"N.GONZALES 11",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-thuram-19",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"THURAM 19",prezzo:25.0,stock:8,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-kolo-muani-20",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"KOLO MUANI 20",prezzo:20.0,stock:18,img:""},
-  {id:"ns2-juventus-home-away-black-2024-25-douglas-luiz-26",cat:"nameset",squadra:"JUVENTUS HOME/AWAY BLACK",stagione:"2024-25",descrizione:"DOUGLAS LUIZ 26",prezzo:20.0,stock:5,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-gatti-4",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"GATTI 4",prezzo:20.0,stock:1,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"F.CONCEICAO 7",prezzo:25.0,stock:13,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-koopmeiners-8",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"KOOPMEINERS 8",prezzo:20.0,stock:5,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-vlahovic-9",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"VLAHOVIC 9",prezzo:20.0,stock:10,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-yildiz-15",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"YILDIZ 15",prezzo:30.0,stock:10,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-n-gonzales-11",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"N.GONZALES 11",prezzo:20.0,stock:4,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-thuram-19",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"THURAM 19",prezzo:25.0,stock:7,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-kolo-muani-20",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"KOLO MUANI 20",prezzo:25.0,stock:5,img:""},
-  {id:"ns2-juventus-3rd-gold-2024-25-douglas-luiz-26",cat:"nameset",squadra:"JUVENTUS 3RD GOLD",stagione:"2024-25",descrizione:"DOUGLAS LUIZ 26",prezzo:20.0,stock:3,img:""},
-  {id:"ns2-juventus-home-2025-26-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"F,CONCEICAO 7",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-home-2025-26-vlahovic-9",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:5,img:""},
-  {id:"ns2-juventus-home-2025-26-yildiz-15",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"YILDIZ 15",prezzo:30.0,stock:10,img:""},
-  {id:"ns2-juventus-home-2025-26-e-zhegrova-11",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"E.ZHEGROVA 11",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-home-2025-26-thuram-19",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"THURAM 19",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-home-2025-26-joao-mario-25",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"JOAO MARIO 25",prezzo:20.0,stock:3,img:""},
-  {id:"ns2-juventus-home-2025-26-j-david-30",cat:"nameset",squadra:"JUVENTUS HOME",stagione:"2025-26",descrizione:"J.DAVID 30",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-away-2025-26-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"F,CONCEICAO 7",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-away-2025-26-vlahovic-9",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-away-2025-26-yildiz-15",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"YILDIZ 15",prezzo:30.0,stock:9,img:""},
-  {id:"ns2-juventus-away-2025-26-e-zhegrova-11",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"E.ZHEGROVA 11",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-away-2025-26-j-david-30",cat:"nameset",squadra:"JUVENTUS AWAY",stagione:"2025-26",descrizione:"J.DAVID 30",prezzo:25.0,stock:2,img:""},
-  {id:"ns2-juventus-3rd-2025-26-f-conceicao-7",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"F,CONCEICAO 7",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-3rd-2025-26-vlahovic-9",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"VLAHOVIC 9",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-3rd-2025-26-yildiz-15",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"YILDIZ 15",prezzo:30.0,stock:8,img:""},
-  {id:"ns2-juventus-3rd-2025-26-e-zhegrova-11",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"E.ZHEGROVA 11",prezzo:25.0,stock:3,img:""},
-  {id:"ns2-juventus-3rd-2025-26-j-david-30",cat:"nameset",squadra:"JUVENTUS 3RD",stagione:"2025-26",descrizione:"J.DAVID 30",prezzo:25.0,stock:2,img:""},
-  {id:"pt-2010-11-juventus-esperienza-italia-150",cat:"patch",squadra:"Juventus",stagione:"2010-11",descrizione:"JUVENTUS ESPERIENZA ITALIA 150\u00b0",prezzo:10.0,stock:35,img:""},
-  {id:"pt-2011-12-juventus-opening-stadium",cat:"patch",squadra:"Juventus",stagione:"2011-12",descrizione:"JUVENTUS OPENING STADIUM",prezzo:10.0,stock:19,img:""},
-  {id:"pt-1984-85-scudetto-winner-shield-juventus-old-legend",cat:"patch",squadra:"Juventus",stagione:"1984-85",descrizione:"SCUDETTO WINNER SHIELD JUVENTUS OLD LEGEND",prezzo:15.0,stock:5,img:""},
-  {id:"pt-2003-04-2005-06-scudetto-winner-shield-juventus",cat:"patch",squadra:"Juventus",stagione:"2003-04/2005-06",descrizione:"SCUDETTO WINNER SHIELD JUVENTUS",prezzo:15.0,stock:29,img:""},
-  {id:"pt-2012-18-set-scudetto-coccarda-winner-juventus",cat:"patch",squadra:"Juventus",stagione:"2012-18",descrizione:"SET SCUDETTO+COCCARDA WINNER JUVENTUS",prezzo:20.0,stock:78,img:""},
-  {id:"pt-2012-18-scudetto-winner-shield-juventus",cat:"patch",squadra:"Juventus",stagione:"2012-18",descrizione:"SCUDETTO WINNER SHIELD JUVENTUS",prezzo:10.0,stock:64,img:""},
-  {id:"pt-2019-21-scudetto-winner-shield-juventus",cat:"patch",squadra:"Juventus",stagione:"2019-21",descrizione:"SCUDETTO WINNER SHIELD JUVENTUS",prezzo:10.0,stock:46,img:""},
-  {id:"pt-2018-19-coccarda-winner-juventus",cat:"patch",squadra:"Juventus",stagione:"2018-19",descrizione:"COCCARDA WINNER JUVENTUS",prezzo:10.0,stock:27,img:""},
-  {id:"pt-2024-25-coccarda-winner-juventus",cat:"patch",squadra:"Juventus",stagione:"2024-25",descrizione:"COCCARDA WINNER JUVENTUS",prezzo:8.0,stock:115,img:""},
-  {id:"pt-2018-19-unico-home-black",cat:"patch",squadra:"Juventus",stagione:"2018-19",descrizione:"#UNICO HOME BLACK",prezzo:8.0,stock:49,img:""},
-  {id:"pt-2019-20-648uffon-home-white",cat:"patch",squadra:"Juventus",stagione:"2019-20",descrizione:"648UFFON HOME WHITE",prezzo:8.0,stock:20,img:""},
-  {id:"pt-2021-22-bitget-4th-white",cat:"patch",squadra:"Juventus",stagione:"2021-22",descrizione:"BITGET 4TH WHITE",prezzo:7.0,stock:40,img:""},
-  {id:"pt-2012-13-copristelle-home",cat:"patch",squadra:"Juventus",stagione:"2012-13",descrizione:"COPRISTELLE HOME",prezzo:5.0,stock:38,img:""},
-  {id:"pt-2012-13-30-sul-campo-white",cat:"patch",squadra:"Juventus",stagione:"2012-13",descrizione:"30 SUL CAMPO WHITE",prezzo:5.0,stock:19,img:""},
-  {id:"pt-2012-13-30-sul-campo-black",cat:"patch",squadra:"Juventus",stagione:"2012-13",descrizione:"30 SUL CAMPO BLACK",prezzo:5.0,stock:7,img:""},
-  {id:"pt-2004-06-logo-juventus",cat:"patch",squadra:"Juventus",stagione:"2004-06",descrizione:"LOGO JUVENTUS",prezzo:10.0,stock:2,img:""},
-  {id:"pt-2011-14-logo-juventus",cat:"patch",squadra:"Juventus",stagione:"2011-14",descrizione:"LOGO JUVENTUS",prezzo:10.0,stock:18,img:""},
-  {id:"sp-1998-00-patch-d-small-for-front-polo",cat:"sponsor",squadra:"Juventus",stagione:"1998-00",descrizione:"PATCH D+ small for front polo",prezzo:20.0,stock:4,img:""},
-  {id:"sp-2004-06-sky-away",cat:"sponsor",squadra:"Juventus",stagione:"2004-06",descrizione:"SKY away",prezzo:10.0,stock:25,img:""},
-  {id:"sp-2004-06-tamoil-small-7-5-cm-front-apparel",cat:"sponsor",squadra:"Juventus",stagione:"2004-06",descrizione:"TAMOIL small 7,5 cm (FRONT APPAREL)",prezzo:2.0,stock:29,img:""},
-  {id:"sp-2007-10-new-holland-lega-calcio",cat:"sponsor",squadra:"Juventus",stagione:"2007-10",descrizione:"NEW HOLLAND lega calcio",prezzo:30.0,stock:4,img:""},
-  {id:"sp-2007-10-new-holland-uefa",cat:"sponsor",squadra:"Juventus",stagione:"2007-10",descrizione:"NEW HOLLAND uefa",prezzo:10.0,stock:23,img:""},
-  {id:"sp-2007-10-new-holland-small-10-cm-front-apparel",cat:"sponsor",squadra:"Juventus",stagione:"2007-10",descrizione:"NEW HOLLAND small 10 cm (FRONT APPAREL)",prezzo:1.0,stock:250,img:""},
-  {id:"sp-2010-11-betclic-small-15-cm-front-apparel",cat:"sponsor",squadra:"Juventus",stagione:"2010-11",descrizione:"BETCLIC small 15 cm (FRONT APPAREL)",prezzo:3.0,stock:34,img:""},
-  {id:"sp-2010-11-balocco-uefa",cat:"sponsor",squadra:"Juventus",stagione:"2010-11",descrizione:"BALOCCO uefa",prezzo:20.0,stock:3,img:""},
-  {id:"sp-2010-11-balocco-lega-calcio",cat:"sponsor",squadra:"Juventus",stagione:"2010-11",descrizione:"BALOCCO lega calcio",prezzo:30.0,stock:3,img:""},
-  {id:"sp-2011-12-betclic-small-15-cm-front-apparel",cat:"sponsor",squadra:"Juventus",stagione:"2011-12",descrizione:"BETCLIC small 15 cm (FRONT APPAREL)",prezzo:3.0,stock:19,img:""},
-  {id:"sp-2011-12-balocco-lega-calcio",cat:"sponsor",squadra:"Juventus",stagione:"2011-12",descrizione:"BALOCCO lega calcio",prezzo:30.0,stock:5,img:""},
-  {id:"sp-2011-12-betclic-uefa",cat:"sponsor",squadra:"Juventus",stagione:"2011-12",descrizione:"BETCLIC uefa",prezzo:25.0,stock:2,img:""},
-  {id:"sp-2011-12-betclic-gk",cat:"sponsor",squadra:"Juventus",stagione:"2011-12",descrizione:"BETCLIC GK",prezzo:15.0,stock:10,img:""},
-  {id:"sp-2011-12-betclic-front-training-white",cat:"sponsor",squadra:"Juventus",stagione:"2011-12",descrizione:"BETCLIC FRONT TRAINING white",prezzo:10.0,stock:26,img:""},
-  {id:"sp-2012-24-jeep-lega-calcio-black-6-2-cm-front-apparel",cat:"sponsor",squadra:"Juventus",stagione:"2012-24",descrizione:"JEEP lega calcio black 6,2 cm (FRONT APPAREL)",prezzo:3.0,stock:85,img:""},
-  {id:"sp-2012-16-jeep-lega-calcio-white-black-jeep",cat:"sponsor",squadra:"Juventus",stagione:"2012-16",descrizione:"JEEP lega calcio white (black Jeep)",prezzo:20.0,stock:7,img:""},
-  {id:"sp-2012-16-jeep-lega-calcio-black-white-jeep",cat:"sponsor",squadra:"Juventus",stagione:"2012-16",descrizione:"JEEP lega calcio black (white Jeep)",prezzo:20.0,stock:16,img:""},
-  {id:"sp-2012-16-jeep-uefa-black-white-jeep",cat:"sponsor",squadra:"Juventus",stagione:"2012-16",descrizione:"JEEP uefa black (white Jeep)",prezzo:20.0,stock:21,img:""},
-  {id:"sp-2012-16-jeep-uefa-black-white-jeep-block-of-40",cat:"sponsor",squadra:"Juventus",stagione:"2012-16",descrizione:"JEEP uefa black (white Jeep) block of 40",prezzo:400.0,stock:1,img:""},
-  {id:"sp-2012-20-jeep-lega-calcio-white-24-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2012-20",descrizione:"JEEP lega calcio white 24,5 cm",prezzo:15.0,stock:25,img:""},
-  {id:"sp-2012-20-jeep-lega-calcio-white-block-of-30",cat:"sponsor",squadra:"Juventus",stagione:"2012-20",descrizione:"JEEP lega calcio white BLOCK OF  30",prezzo:300.0,stock:1,img:""},
-  {id:"sp-2012-20-jeep-uefa-white-22-cm",cat:"sponsor",squadra:"Juventus",stagione:"2012-20",descrizione:"JEEP uefa white 22 cm",prezzo:15.0,stock:21,img:""},
-  {id:"sp-2012-20-jeep-uefa-white-block-of-30",cat:"sponsor",squadra:"Juventus",stagione:"2012-20",descrizione:"JEEP uefa white BLOCK OF 30",prezzo:300.0,stock:1,img:""},
-  {id:"sp-2012-19-jeep-lega-calcio-black-24-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2012-19",descrizione:"JEEP lega calcio black 24,5 cm",prezzo:15.0,stock:30,img:""},
-  {id:"sp-2012-19-jeep-lega-calcio-black-block-of-20",cat:"sponsor",squadra:"Juventus",stagione:"2012-19",descrizione:"JEEP lega calcio black BLOCK OF 20",prezzo:200.0,stock:1,img:""},
-  {id:"sp-2012-19-jeep-uefa-black-22-cm",cat:"sponsor",squadra:"Juventus",stagione:"2012-19",descrizione:"JEEP uefa black 22 cm",prezzo:10.0,stock:40,img:""},
-  {id:"sp-2012-19-jeep-uefa-black-block-of-30",cat:"sponsor",squadra:"Juventus",stagione:"2012-19",descrizione:"JEEP uefa black BLOCK OF 30",prezzo:300.0,stock:1,img:""},
-  {id:"sp-2016-17-jeep-lega-calcio-white-black-jeep",cat:"sponsor",squadra:"Juventus",stagione:"2016-17",descrizione:"JEEP lega calcio white (black Jeep)",prezzo:25.0,stock:22,img:""},
-  {id:"sp-2016-17-jeep-uefa-white-black-jeep",cat:"sponsor",squadra:"Juventus",stagione:"2016-17",descrizione:"JEEP uefa white (black Jeep)",prezzo:25.0,stock:39,img:""},
-  {id:"sp-2016-17-jeep-lega-calcio-white",cat:"sponsor",squadra:"Juventus",stagione:"2016-17",descrizione:"JEEP lega calcio white",prezzo:30.0,stock:25,img:""},
-  {id:"sp-2016-17-jeep-uefa-white",cat:"sponsor",squadra:"Juventus",stagione:"2016-17",descrizione:"JEEP uefa white",prezzo:35.0,stock:21,img:""},
-  {id:"sp-2017-18-19-21-25-26-jeep-lega-calcio-white-home-24-cm",cat:"sponsor",squadra:"Juventus",stagione:"2017-18/19-21/25-26",descrizione:"JEEP lega calcio white HOME 24 cm",prezzo:15.0,stock:15,img:""},
-  {id:"sp-2017-18-19-21-25-26-jeep-lega-calcio-white-home-24-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2017-18/19-21/25-26",descrizione:"JEEP lega calcio white HOME 24,5 cm",prezzo:500.0,stock:1,img:""},
-  {id:"sp-2017-18-19-21-25-26-jeep-uefa-white-home-21-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2017-18/19-21/25-26",descrizione:"JEEP uefa white HOME 21,5 cm",prezzo:15.0,stock:38,img:""},
-  {id:"sp-2017-18-19-21-25-26-jeep-uefa-white-home-block-of-50",cat:"sponsor",squadra:"Juventus",stagione:"2017-18/19-21/25-26",descrizione:"JEEP uefa white HOME BLOCK OF 50",prezzo:500.0,stock:1,img:""},
-  {id:"sp-2017-18-jeep-uefa-royal-21-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2017-18",descrizione:"JEEP uefa royal 21,5 cm",prezzo:25.0,stock:11,img:""},
-  {id:"sp-2018-19-jeep-yellow-24-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2018-19",descrizione:"JEEP yellow 24,5 cm",prezzo:25.0,stock:16,img:""},
-  {id:"sp-2019-20-jeep-lega-calcio-red-away-24-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2019-20",descrizione:"JEEP lega calcio red AWAY 24,5 cm",prezzo:25.0,stock:28,img:""},
-  {id:"sp-2020-21-jeep-home-gold-black-24-cm",cat:"sponsor",squadra:"Juventus",stagione:"2020-21",descrizione:"JEEP HOME gold/black 24 cm",prezzo:30.0,stock:58,img:""},
-  {id:"sp-2020-21-jeep-away-grey-24-8-cm",cat:"sponsor",squadra:"Juventus",stagione:"2020-21",descrizione:"JEEP AWAY grey 24,8 cm",prezzo:30.0,stock:7,img:""},
-  {id:"sp-2020-21-jeep-home-vs-crotone-24-cm",cat:"sponsor",squadra:"Juventus",stagione:"2020-21",descrizione:"JEEP HOME vs CROTONE 24 cm",prezzo:20.0,stock:44,img:""},
-  {id:"sp-2020-21-jeep-blu-gk-home-24-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2020-21",descrizione:"JEEP  blu GK HOME 24,5 cm",prezzo:20.0,stock:24,img:""},
-  {id:"sp-2018-19-cygames-yellow-3rd",cat:"sponsor",squadra:"Juventus",stagione:"2018-19",descrizione:"CYGAMES yellow 3RD",prezzo:3.0,stock:285,img:""},
-  {id:"sp-2021-22-jeep-4xe-serie-a-home-21-2-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"JEEP 4xe SERIE A HOME 21,2 cm",prezzo:30.0,stock:105,img:""},
-  {id:"sp-2021-22-jeep-4xe-serie-a-away-21-2-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"JEEP 4xe SERIE A AWAY 21,2 cm",prezzo:30.0,stock:29,img:""},
-  {id:"sp-2021-22-jeep-4xe-serie-a-3rd-21-2-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"JEEP 4xe SERIE A 3RD 21,2 cm",prezzo:30.0,stock:45,img:""},
-  {id:"sp-2021-22-jeep-4xe-serie-a-home-away-3rd-gk-21-2-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"JEEP 4xe SERIE A HOME/AWAY/3RD GK 21,2 cm",prezzo:30.0,stock:22,img:""},
-  {id:"sp-2021-22-jeep-4xe-uefa-away-19-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"JEEP 4xe uefa AWAY 19 cm",prezzo:30.0,stock:31,img:""},
-  {id:"sp-2021-22-jeep-4xe-uefa-gk-green-kobra-serie-a-19-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"JEEP 4xe uefa GK green + KOBRA serie A 19 cm",prezzo:30.0,stock:20,img:""},
-  {id:"sp-2021-22-jeep-4xe-uefa-gk-orange-19-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"JEEP 4xe uefa GK orange 19 cm",prezzo:25.0,stock:61,img:""},
-  {id:"sp-2021-24-cygames-black-dekographics",cat:"sponsor",squadra:"Juventus",stagione:"2021-24",descrizione:"CYGAMES black DEKOGRAPHICS",prezzo:10.0,stock:81,img:""},
-  {id:"sp-2021-24-cygames-white-dekographics",cat:"sponsor",squadra:"Juventus",stagione:"2021-24",descrizione:"CYGAMES white DEKOGRAPHICS",prezzo:10.0,stock:67,img:""},
-  {id:"sp-2021-22-cygames-3rd-royal",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"CYGAMES 3RD royal",prezzo:10.0,stock:10,img:""},
-  {id:"sp-2024-25-cygames-black-stilscreen",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"CYGAMES black STILSCREEN",prezzo:10.0,stock:67,img:""},
-  {id:"sp-2024-25-cygames-gold-stilscreen",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"CYGAMES gold STILSCREEN",prezzo:10.0,stock:50,img:""},
-  {id:"sp-2024-26-azimut-black-home-stilscreen",cat:"sponsor",squadra:"Juventus",stagione:"2024-26",descrizione:"AZIMUT black HOME STILSCREEN",prezzo:8.0,stock:74,img:""},
-  {id:"sp-2024-25-azimut-blu-away-stilscreen",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"AZIMUT blu AWAY STILSCREEN",prezzo:8.0,stock:10,img:""},
-  {id:"sp-2024-25-azimut-gold-3rd-stilscreen",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"AZIMUT gold 3RD STILSCREEN",prezzo:8.0,stock:20,img:""},
-  {id:"sp-2023-24-jeep-lega-calcio-away-24-5-cm",cat:"sponsor",squadra:"Juventus",stagione:"2023-24",descrizione:"JEEP lega calcio AWAY 24,5 cm",prezzo:35.0,stock:40,img:""},
-  {id:"sp-2023-24-jeep-lega-calcio-3rd-24-cm",cat:"sponsor",squadra:"Juventus",stagione:"2023-24",descrizione:"JEEP lega calcio 3rd 24 cm",prezzo:35.0,stock:41,img:""},
-  {id:"sp-2021-26-allianz-white-31-3-cm",cat:"sponsor",squadra:"Juventus",stagione:"2021-26",descrizione:"ALLIANZ white 31,3 cm",prezzo:10.0,stock:14,img:""},
-  {id:"sp-2021-25-allianz-white-28-3-cm-women",cat:"sponsor",squadra:"Juventus",stagione:"2021-25",descrizione:"ALLIANZ white 28,3 cm women",prezzo:10.0,stock:15,img:""},
-  {id:"sp-2021-25-allianz-black-28-3-cm-women",cat:"sponsor",squadra:"Juventus",stagione:"2021-25",descrizione:"ALLIANZ black 28,3 cm women",prezzo:10.0,stock:60,img:""},
-  {id:"sp-2021-22-allianz-3rd-royal-28-3-cm-women",cat:"sponsor",squadra:"Juventus",stagione:"2021-22",descrizione:"ALLIANZ 3RD royal 28,3 cm women",prezzo:10.0,stock:2,img:""},
-  {id:"sp-2023-24-allianz-home-yellow-28-3-cm-women",cat:"sponsor",squadra:"Juventus",stagione:"2023-24",descrizione:"ALLIANZ HOME yellow 28,3 cm women",prezzo:10.0,stock:6,img:""},
-  {id:"sp-2023-24-fem-women-home",cat:"sponsor",squadra:"Juventus",stagione:"2023-24",descrizione:"FEM Women HOME",prezzo:10.0,stock:7,img:""},
-  {id:"sp-2023-24-fem-women-white-away-women",cat:"sponsor",squadra:"Juventus",stagione:"2023-24",descrizione:"FEM Women white AWAY women",prezzo:8.0,stock:52,img:""},
-  {id:"sp-2023-26-tim-sleeve-home-women",cat:"sponsor",squadra:"Juventus",stagione:"2023-26",descrizione:"TIM sleeve HOME women",prezzo:8.0,stock:5,img:""},
-  {id:"sp-2023-24-tim-sleeve-away-white-gk-women",cat:"sponsor",squadra:"Juventus",stagione:"2023-24",descrizione:"TIM sleeve AWAY white gk women",prezzo:8.0,stock:17,img:""},
-  {id:"sp-2024-25-mentalhealth-tik-tok-home-women-vs-roma",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"MENTALHEALTH TIK TOK HOME women vs Roma",prezzo:10.0,stock:3,img:""},
-  {id:"sp-2024-25-tik-tok-front-home-away-womens-football",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"TIK TOK front HOME/AWAY womens football",prezzo:10.0,stock:25,img:""},
-  {id:"sp-2024-25-tik-tok-front-3rd-white-women",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"TIK TOK front 3rd white women",prezzo:10.0,stock:5,img:""},
-  {id:"sp-2024-25-save-the-children-back-home-women",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"SAVE THE CHILDREN back HOME women",prezzo:8.0,stock:7,img:""},
-  {id:"sp-2024-25-save-the-children-back-3rd-women",cat:"sponsor",squadra:"Juventus",stagione:"2024-25",descrizione:"SAVE THE CHILDREN back 3RD women",prezzo:8.0,stock:8,img:""},
-  {id:"sp-2025-26-sleeve-sponsor-home-whitebit",cat:"sponsor",squadra:"Juventus",stagione:"2025-26",descrizione:"SLEEVE SPONSOR HOME WHITEBIT",prezzo:8.0,stock:20,img:""},
-  {id:"sp-2025-26-jeep-visit-detroit-white-black-home",cat:"sponsor",squadra:"Juventus",stagione:"2025-26",descrizione:"JEEP+VISIT DETROIT white/black HOME",prezzo:18.0,stock:20,img:""},
-  {id:"sp-2025-26-jeep-visit-detroit-blu-away",cat:"sponsor",squadra:"Juventus",stagione:"2025-26",descrizione:"JEEP+VISIT DETROIT blu AWAY",prezzo:18.0,stock:19,img:""},
-  {id:"sp-2025-26-jeep-visit-detroit-beige-3rd",cat:"sponsor",squadra:"Juventus",stagione:"2025-26",descrizione:"JEEP+VISIT DETROIT beige 3RD",prezzo:18.0,stock:19,img:""}
-];
+let PRODUCTS = [];  // popolato dinamicamente da loadProductsFromSheet()
+let productsLoaded = false;
+
+/* ════════════════════════════════════════════════════════
+   CARICAMENTO LIVE DAL GOOGLE SHEET
+   Colonne attese: ID;CATEGORIA;SQUADRA;STAGIONE;DESCRIZIONE;COMPETIZIONE;PREZZO;STOCK
+   ════════════════════════════════════════════════════════ */
+
+// Mappa CATEGORIA (testo libero nel foglio) -> categoria interna del sito
+function mapCategoria(catRaw){
+  const c = (catRaw||"").trim().toUpperCase();
+  if(c.includes("MATCH WORN"))    return "matchworn";
+  if(c.includes("MATCH ISSUED"))  return "matchissued";
+  if(c.includes("NAMESET"))       return "nameset";
+  if(c.includes("PATCH"))         return "patch";
+  if(c.includes("SPONSOR"))       return "sponsor";
+  if(c.includes("MAGLI"))         return "matchworn"; // fallback generico maglie
+  return "nameset"; // fallback di sicurezza
+}
+
+// Etichetta leggibile per badge / filtri
+function catLabel(c){
+  switch(c){
+    case "nameset":     return "Nameset";
+    case "patch":       return "Patch";
+    case "sponsor":     return "Sponsor";
+    case "matchworn":   return "Match Worn";
+    case "matchissued": return "Match Issued";
+    default:            return c;
+  }
+}
+
+// Parser CSV minimale ma robusto (gestisce campi tra virgolette con ; o , come separatore)
+function parseCSV(text){
+  // Rileva separatore: ; oppure ,
+  const firstLine = text.split(/\r?\n/)[0];
+  const sep = firstLine.includes(";") ? ";" : ",";
+  const rows = [];
+  const lines = text.split(/\r?\n/).filter(l=>l.trim()!=="");
+  for(const line of lines){
+    const cells = [];
+    let cur = "", inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+      if(ch === '"'){
+        if(inQuotes && line[i+1]==='"'){ cur+='"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if(ch === sep && !inQuotes){
+        cells.push(cur); cur="";
+      } else cur += ch;
+    }
+    cells.push(cur);
+    rows.push(cells.map(c=>c.trim()));
+  }
+  return rows;
+}
+
+// Costruisce id univoco se ID è vuoto nel foglio
+function slugify(s){
+  return (s||"").toString().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,70);
+}
+
+// Costruisce nome prodotto: CATEGORIA + DESCRIZIONE + STAGIONE
+function buildProductName(categoria, descrizione, stagione){
+  const parts = [categoria, descrizione, stagione].filter(Boolean);
+  return parts.join(" ").replace(/\s+/g," ").trim();
+}
+
+// Costruisce descrizione estesa per la scheda prodotto:
+// CATEGORIA / STAGIONE+COMPETIZIONE / Provenienza magazzino squadra / Taglia disponibile in foto
+function buildLongDescription(categoria, stagione, competizione, isJersey){
+  const lines = [];
+  lines.push(categoria);
+  const stagComp = [stagione, competizione].filter(Boolean).join(" — ");
+  if(stagComp) lines.push(stagComp);
+  lines.push("Provenienza magazzino squadra");
+  if(isJersey) lines.push('Taglia disponibile nella foto');
+  return lines.join(" · ");
+}
+
+async function loadProductsFromSheet(){
+  try{
+    const res = await fetch(GSHEET_CSV, {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if(rows.length < 2) throw new Error("Foglio vuoto");
+
+    // Identifica intestazioni (prima riga) per essere tolleranti all'ordine colonne
+    const header = rows[0].map(h=>h.trim().toUpperCase());
+    const idx = {
+      id:           header.indexOf("ID"),
+      categoria:    header.indexOf("CATEGORIA"),
+      squadra:      header.indexOf("SQUADRA"),
+      stagione:     header.indexOf("STAGIONE"),
+      descrizione:  header.indexOf("DESCRIZIONE"),
+      competizione: header.indexOf("COMPETIZIONE"),
+      prezzo:       header.indexOf("PREZZO"),
+      stock:        header.indexOf("STOCK"),
+    };
+
+    const out = [];
+    for(let i=1;i<rows.length;i++){
+      const r = rows[i];
+      if(!r || r.length < 3) continue;
+
+      const categoriaRaw = idx.categoria>-1 ? r[idx.categoria] : "";
+      const squadra      = idx.squadra>-1 ? r[idx.squadra] : "";
+      const stagione      = idx.stagione>-1 ? r[idx.stagione] : "";
+      const descrizione   = idx.descrizione>-1 ? r[idx.descrizione] : "";
+      const competizione  = idx.competizione>-1 ? r[idx.competizione] : "";
+      const prezzoRaw     = idx.prezzo>-1 ? r[idx.prezzo] : "";
+      const stockRaw      = idx.stock>-1 ? r[idx.stock] : "";
+
+      if(!descrizione && !squadra) continue; // riga vuota/scarto
+
+      const prezzo = parseFloat(String(prezzoRaw).replace(",",".").replace(/[^\d.]/g,""));
+      const stock  = parseInt(String(stockRaw).replace(/[^\d]/g,""),10);
+      if(isNaN(prezzo) || isNaN(stock)) continue; // riga incompleta, scarto
+      if(stock <= 0) continue; // esaurito, non mostrare
+
+      const cat = mapCategoria(categoriaRaw);
+      const isJersey = (cat==="matchworn" || cat==="matchissued");
+
+      const id = (idx.id>-1 && r[idx.id]) ? r[idx.id].trim() : slugify(`${cat}-${squadra}-${stagione}-${descrizione}-${i}`);
+
+      out.push({
+        id,
+        cat,
+        catRawLabel: catLabel(cat),
+        squadra: squadra || "",
+        stagione: stagione || "",
+        competizione: competizione || "",
+        descrizione: buildProductName(catLabel(cat), descrizione, stagione),
+        descrizioneEstesa: buildLongDescription(catLabel(cat), stagione, competizione, isJersey),
+        prezzo,
+        stock,
+        img: "",
+        isJersey,
+      });
+    }
+
+    PRODUCTS = out;
+    productsLoaded = true;
+    return true;
+  }catch(err){
+    console.error("Errore caricamento Google Sheet:", err);
+    return false;
+  }
+}
+
 const GSHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUPu623k-Kbh8H-TAB8Wa9Z5kk88uEvet5owTfreZJOAWfrZyEqAbPWvV-6gLQXu65IzzKYw--Swx9/pub?output=csv";
 const WHOLESALE_CODES = { "RIVENDITORE2024": 20, "TRADE30": 30 }; // codice -> % sconto
 let discountPct = 0;
@@ -1280,7 +1031,7 @@ let currentPage = 1;
 
 const fmt = n => n + "\u00A0" + CONFIG.SYMBOL;
 const priceOf = p => p.prezzo || PRICES[p.cat];
-const catLabel = c => c==="nameset"?"Nameset":c==="patch"?"Patch":"Sponsor";
+
 
 /* ── KIT COLOR ── */
 function kitColor(sq){
@@ -1304,7 +1055,14 @@ function kitColor(sq){
 /* ── JERSEY VISUAL ── */
 function jerseyVisual(p){
   const tag = `<span class="stock-tag">${p.stock} pz</span>`;
-  if(p.img) return `<div class="jersey">${tag}<img src="${p.img}" alt="${p.descrizione}" loading="lazy"><div class="kit-bar"></div></div>`;
+
+  // Badge premium per le maglie match worn / match issued
+  const jerseyBadge = p.isJersey
+    ? `<span class="jersey-type-badge ${p.cat==='matchworn'?'worn':'issued'}">${p.cat==='matchworn'?'Match Worn':'Match Issued'}</span>`
+    : "";
+
+  if(p.img) return `<div class="jersey">${tag}${jerseyBadge}<img src="${p.img}" alt="${p.descrizione}" loading="lazy"><div class="kit-bar"></div></div>`;
+
   if(p.cat==="nameset"){
     const color = kitColor(p.squadra);
     const match = p.descrizione.match(/^(.+?)\s+(\d+)(.*)$/);
@@ -1318,6 +1076,23 @@ function jerseyVisual(p){
       <div class="kit-bar"></div>
     </div>`;
   }
+
+  if(p.isJersey){
+    // Visual per maglie da collezione: silhouette stilizzata + numero giocatore se presente
+    const color = kitColor(p.squadra || p.descrizione);
+    const numMatch = p.descrizione.match(/\b(\d{1,2})\b/);
+    const num = numMatch ? numMatch[1] : "";
+    return `<div class="jersey jersey-collectible">
+      ${tag}${jerseyBadge}
+      <div class="jersey-watermark">${num||"★"}</div>
+      <svg class="jersey-silhouette" viewBox="0 0 100 100" style="color:${color}">
+        <path d="M30 10 L20 22 L8 30 L18 42 L25 36 L25 88 L75 88 L75 36 L82 42 L92 30 L80 22 L70 10 L60 18 L50 22 L40 18 Z" fill="currentColor" opacity="0.18"/>
+      </svg>
+      <span class="jersey-plate" style="color:${color};font-size:13px">${p.squadra}</span>
+      <div class="kit-bar"></div>
+    </div>`;
+  }
+
   const ico = p.cat==="patch"?"P":"S";
   return `<div class="jersey">${tag}<span class="badge-ico">${ico}</span><div class="kit-bar"></div></div>`;
 }
@@ -1351,6 +1126,16 @@ function setPerPage(n){
 
 /* ── RENDER GRID + PAGINAZIONE ── */
 function render(){
+  if(!productsLoaded){
+    document.getElementById("grid").innerHTML = `
+      <div class="loading-state">
+        <div class="spin"></div>
+        Caricamento catalogo&hellip;
+      </div>`;
+    document.getElementById("pagination").innerHTML = "";
+    document.getElementById("countLbl").textContent = "";
+    return;
+  }
   const list  = filteredList();
   const total = list.length;
   const pages = Math.ceil(total/perPage);
@@ -1361,13 +1146,17 @@ function render(){
   const grid = document.getElementById("grid");
   grid.innerHTML = slice.map(p=>{
     const inCart = cart[p.id];
-    const kitShort = p.squadra.replace(/JUVENTUS\s*/i,"").trim()||"JUVE";
+    // Per maglie usa la descrizione estesa (categoria/stagione+competizione/provenienza/taglia)
+    // Per nameset/patch/sponsor usa squadra+stagione come prima
+    const subLine = p.isJersey
+      ? p.descrizioneEstesa
+      : `${(p.squadra||"").replace(/JUVENTUS\s*/i,"").trim()||p.squadra} &middot; ${p.stagione}`;
     return `<article class="card">
       ${jerseyVisual(p)}
       <div class="card-body">
         <span class="card-cat">${catLabel(p.cat)}</span>
         <span class="card-title">${p.descrizione}</span>
-        <span class="card-sub">${kitShort} &middot; ${p.stagione}</span>
+        <span class="card-sub" style="${p.isJersey?'line-height:1.5':''}">${subLine}</span>
         <div class="card-foot">
           <span class="card-price">${fmt(priceOf(p))}</span>
           <button class="add-btn ${inCart?'added':''}" onclick="addToCart('${p.id}')">${inCart?'Aggiunto \u2713':'Aggiungi'}</button>
@@ -1712,7 +1501,11 @@ const CLOUDINARY_CLOUD="drxzu2dmc";
 const CLOUDINARY_PRESET="nameset_upload";
 let adminUnlocked=false, currentUploadId=null;
 
-function openAdmin(){ document.getElementById("adminScrim").classList.add("open"); if(!adminUnlocked){ document.getElementById("adminLogin").style.display="block"; document.getElementById("adminPanel").style.display="none"; } }
+function openAdmin(){
+  if(!productsLoaded){ toast("Attendi il caricamento del catalogo\u2026"); return; }
+  document.getElementById("adminScrim").classList.add("open");
+  if(!adminUnlocked){ document.getElementById("adminLogin").style.display="block"; document.getElementById("adminPanel").style.display="none"; }
+}
 function closeAdmin(){ document.getElementById("adminScrim").classList.remove("open"); }
 function adminAuth(){
   if(document.getElementById("adminPwd").value===ADMIN_PWD){
@@ -1820,9 +1613,32 @@ REQUIRED.forEach(id=>{
   el.addEventListener("input",()=>{ if(el.value.trim()) el.classList.remove("err"); updateCart(); });
 });
 
-// Render iniziale
+// Render iniziale: mostra subito lo stato di caricamento...
 render();
 updateCart();
+
+// ...poi scarica i prodotti dal Google Sheet e aggiorna il catalogo
+async function initCatalog(){
+  const ok = await loadProductsFromSheet();
+  if(ok){
+    render();
+    updateCart();
+  } else {
+    document.getElementById("grid").innerHTML = `
+      <div class="error-state">
+        Impossibile caricare il catalogo dal foglio prodotti.<br>
+        Controlla la connessione e riprova.
+        <br><button onclick="initCatalog()">Riprova</button>
+      </div>`;
+  }
+}
+initCatalog();
+
+// Ricarica automaticamente il catalogo ogni 5 minuti (stock sempre aggiornato)
+setInterval(async ()=>{
+  const ok = await loadProductsFromSheet();
+  if(ok){ render(); updateCart(); }
+}, 5*60*1000);
 </script>
 </body>
 </html>
