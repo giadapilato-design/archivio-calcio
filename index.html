@@ -3,7 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Archivio Calcio — Stampe ufficiali per la tua maglia</title>
+<title>Archivio Calcio — Nameset, Patch, Sponsor e Maglie da Collezione</title>
+  <meta name="description" content="Archivio Calcio: nameset, patch e sponsor originali delle squadre italiane. Match Worn e Match Issued dei tuoi calciatori preferiti. Qualità da gara, spedizione in tutta Italia e Europa.">
+  <meta name="keywords" content="nameset calcio, patch calcio, sponsor maglia, match worn, match issued, maglie da collezione, nameset serie a, patch juventus, nameset italia">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Archivio Calcio">
+  <link rel="canonical" href="https://nameset-italia.vercel.app/">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Archivio Calcio">
+  <meta property="og:title" content="Archivio Calcio — Nameset, Patch, Sponsor e Maglie da Collezione">
+  <meta property="og:description" content="Nameset, patch e sponsor originali delle squadre italiane. Match Worn e Match Issued dei tuoi calciatori preferiti.">
+  <meta property="og:url" content="https://nameset-italia.vercel.app/">
+  <meta property="og:locale" content="it_IT">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Archivio Calcio — Nameset, Patch e Maglie da Collezione">
+  <meta name="twitter:description" content="Nameset, patch e sponsor originali delle squadre italiane. Match Worn e Match Issued dei tuoi calciatori preferiti.">
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "Archivio Calcio",
+    "description": "Nameset, patch e sponsor originali delle squadre italiane. Match Worn e Match Issued.",
+    "url": "https://nameset-italia.vercel.app/",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+393518439813",
+      "contactType": "customer service",
+      "availableLanguage": "Italian"
+    },
+    "areaServed": ["IT", "EU"],
+    "currenciesAccepted": "EUR",
+    "paymentAccepted": "PayPal"
+  }
+  </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo+Narrow:wght@400;500;600;700&family=Archivo:wght@400;500&display=swap" rel="stylesheet">
@@ -54,8 +89,12 @@ img{max-width:100%;display:block}
 }
 .brand{display:flex;align-items:center;gap:14px;cursor:pointer}
 .brand-logo{
-  display:flex;align-items:baseline;gap:0;
-  font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.04em;line-height:1;
+  display:flex;align-items:center;cursor:pointer;
+}
+.logo-text{
+  font-family:"Helvetica Now Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:18px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ivory);
 }
 .brand-logo .n1{color:var(--ivory)}
 .brand-logo .gap{display:inline-block;width:5px}
@@ -713,8 +752,8 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 <header class="hdr">
   <div class="hdr-in">
     <div class="brand" onclick="scrollTo({top:0,behavior:'smooth'})">
-      <div class="brand-logo">
-        <span style="color:var(--gold-hi)">ARCHIVIO</span><span style="color:var(--ivory)">&nbsp;CALCIO</span>
+      <div class="brand-logo" onclick="window.scrollTo(0,0)" style="cursor:pointer">
+        <span class="logo-text">ARCHIVIO CALCIO</span>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -1115,6 +1154,13 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 
 <script>
 /* ===================== CONFIG ===================== */
+// Contatore ordini — persiste in localStorage
+function getNextOrderNum(){
+  const n = parseInt(localStorage.getItem("ac_order_seq")||"0",10) + 1;
+  localStorage.setItem("ac_order_seq", n);
+  return n;
+}
+
 const CONFIG = {
   PAYPAL_CLIENT_ID: "DEMO",
   CURRENCY: "EUR",
@@ -1571,11 +1617,15 @@ function render(){
 
   document.getElementById("countLbl").textContent = total+" prodotti";
   renderPagination(total, pages);
-  // Inizializza touch swipe su tutti i carousel renderizzati
   requestAnimationFrame(()=>{
     document.querySelectorAll(".carousel[data-tot]").forEach(el=>{
       if(parseInt(el.dataset.tot||"1",10) > 1) initCarouselTouch(el.id);
     });
+    // Deep link: apri articolo se URL contiene --ID
+    if(window._deepLinkPid && !window._deepLinkOpened){
+      const p = PRODUCTS.find(x=>x.id===window._deepLinkPid);
+      if(p){ window._deepLinkOpened=true; openDetail(p.id); }
+    }
   });
 }
 
@@ -1778,7 +1828,7 @@ function fakeCheckout(){
 }
 
 /* ── TELEGRAM ── */
-function buildOrderMessage(isDemoMode){
+function buildOrderMessage(isDemoMode, orderNum){
   const addr=getShippingAddress();
   const items=cartArray();
   const now=new Date().toLocaleString("it-IT");
@@ -1806,7 +1856,8 @@ function buildOrderMessage(isDemoMode){
 }
 async function sendTelegram(isDemoMode){
   if(isDemoMode&&!CONFIG.WA_NOTIFY_IN_DEMO) return;
-  const msg=buildOrderMessage(isDemoMode);
+  const _oNum = isDemoMode ? null : ("#" + getNextOrderNum());
+  const msg=buildOrderMessage(isDemoMode, _oNum);
   try{
     const res=await fetch(`https://api.telegram.org/bot${CONFIG.TG_TOKEN}/sendMessage`,{
       method:"POST",headers:{"Content-Type":"application/json"},
@@ -1814,7 +1865,103 @@ async function sendTelegram(isDemoMode){
     });
     const data=await res.json();
     if(!data.ok) console.warn("TG err:",data);
+    // Salva ordine per riepilogo settimanale/mensile
+    if(!isDemoMode && _oNum) saveOrderRecord(_oNum, msg);
   }catch(e){console.warn("TG fail:",e)}
+}
+
+/* ── RIEPILOGO ORDINI ── */
+function saveOrderRecord(orderNum, fullMsg){
+  try{
+    const addr = getShippingAddress();
+    const items = cartArray();
+    const total = cartTotal();
+    const record = {
+      num: orderNum,
+      date: new Date().toISOString(),
+      cliente: addr.nome + " " + addr.cognome,
+      email: addr.email,
+      articoli: items.map(it => `${it.product.descrizione} x${it.qty}`).join(", "),
+      totale: total,
+      fattura20: Math.round(total * 0.20 * 100) / 100
+    };
+    const stored = JSON.parse(localStorage.getItem("ac_orders") || "[]");
+    stored.push(record);
+    localStorage.setItem("ac_orders", JSON.stringify(stored));
+  }catch(e){ console.warn("saveOrderRecord error:", e); }
+}
+
+function getOrdersInRange(fromDate, toDate){
+  try{
+    const stored = JSON.parse(localStorage.getItem("ac_orders") || "[]");
+    return stored.filter(o => {
+      const d = new Date(o.date);
+      return d >= fromDate && d <= toDate;
+    });
+  }catch(e){ return []; }
+}
+
+function buildReportMessage(orders, tipo){
+  if(orders.length === 0) return `📊 <b>RIEPILOGO ${tipo}</b>\n\nNessun ordine nel periodo.`;
+  const totale = orders.reduce((s,o) => s + o.totale, 0);
+  const fattura = orders.reduce((s,o) => s + o.fattura20, 0);
+  const righe = orders.map(o =>
+    `• ${o.num} — ${o.cliente} — ${o.articoli} — €${o.totale.toFixed(2)}`
+  ).join("\n");
+  return `📊 <b>RIEPILOGO ${tipo} — ARCHIVIO CALCIO</b>\n` +
+    "━━━━━━━━━━━━━━\n" +
+    righe + "\n" +
+    "━━━━━━━━━━━━━━\n" +
+    `💰 <b>Totale venduto:</b> €${totale.toFixed(2)}\n` +
+    `🧾 <b>20% da fatturare al socio:</b> €${fattura.toFixed(2)}\n` +
+    `📦 <b>Ordini totali:</b> ${orders.length}`;
+}
+
+async function sendReportTelegram(orders, tipo){
+  const msg = buildReportMessage(orders, tipo);
+  try{
+    await fetch("https://api.telegram.org/bot"+CONFIG.TG_TOKEN+"/sendMessage",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({chat_id: CONFIG.TG_CHAT_ID, text: msg, parse_mode:"HTML"})
+    });
+    console.log("Report inviato:", tipo);
+  }catch(e){ console.warn("Report Telegram fail:", e); }
+}
+
+function checkAndSendReports(){
+  const now = new Date();
+  const lastCheck = localStorage.getItem("ac_last_report_check");
+  const lastCheckDate = lastCheck ? new Date(lastCheck) : null;
+  localStorage.setItem("ac_last_report_check", now.toISOString());
+
+  // RIEPILOGO SETTIMANALE — ogni lunedì mattina
+  if(now.getDay() === 1){ // lunedì
+    const lastWeeklyKey = "ac_last_weekly";
+    const lastWeekly = localStorage.getItem(lastWeeklyKey);
+    const todayStr = now.toDateString();
+    if(lastWeekly !== todayStr){
+      localStorage.setItem(lastWeeklyKey, todayStr);
+      const fromDate = new Date(now); fromDate.setDate(now.getDate() - 7); fromDate.setHours(0,0,0,0);
+      const toDate = new Date(now); toDate.setHours(0,0,0,0);
+      const orders = getOrdersInRange(fromDate, toDate);
+      sendReportTelegram(orders, "SETTIMANALE (ultimi 7 giorni)");
+    }
+  }
+
+  // RIEPILOGO MENSILE — il 1° di ogni mese
+  if(now.getDate() === 1){
+    const lastMonthlyKey = "ac_last_monthly";
+    const lastMonthly = localStorage.getItem(lastMonthlyKey);
+    const monthStr = `${now.getFullYear()}-${now.getMonth()}`;
+    if(lastMonthly !== monthStr){
+      localStorage.setItem(lastMonthlyKey, monthStr);
+      const fromDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const toDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      const orders = getOrdersInRange(fromDate, toDate);
+      const mesePrecedente = fromDate.toLocaleString("it-IT", {month:"long", year:"numeric"});
+      sendReportTelegram(orders, `MENSILE — ${mesePrecedente.toUpperCase()}`);
+    }
+  }
 }
 
 /* ── INFORMATIVE ── */
@@ -2191,7 +2338,7 @@ function mobSetCat(cat){
 
 /* ── SHARE ── */
 function shareProduct(p){
-  const url  = window.location.href.split("?")[0] + "?pid=" + encodeURIComponent(p.id);
+  const url  = productUrl(p);
   const text = `${p.descrizione} — ${fmt(priceOf(p))} | Archivio Calcio`;
 
   // Prova Web Share API (mobile nativo)
@@ -2203,8 +2350,21 @@ function shareProduct(p){
   document.getElementById("detailShareRow").style.display = "flex";
 }
 
+function slugify(str){
+  return str.toLowerCase()
+    .replace(/[àáâãäå]/g,"a").replace(/[èéêë]/g,"e")
+    .replace(/[ìíîï]/g,"i").replace(/[òóôõö]/g,"o")
+    .replace(/[ùúûü]/g,"u").replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-+|-+$/g,"");
+}
+
+function productUrl(p){
+  const base = window.location.origin + window.location.pathname.replace(/\/articolo\/[^/]+/, "");
+  return base + "articolo/" + slugify(p.descrizione) + "--" + p.id;
+}
+
 function buildShareButtons(p){
-  const url  = encodeURIComponent(window.location.href.split("?")[0] + "?pid=" + p.id);
+  const url  = encodeURIComponent(productUrl(p));
   const text = encodeURIComponent(p.descrizione + " — " + fmt(priceOf(p)) + " | Archivio Calcio");
   const waUrl   = "https://wa.me/?text=" + text + "%20" + url;
   const mailUrl = "mailto:?subject=" + encodeURIComponent(p.descrizione + " — Archivio Calcio") +
@@ -2227,14 +2387,29 @@ function buildShareButtons(p){
 }
 
 function copyShareLink(pid){
-  const url = window.location.href.split("?")[0] + "?pid=" + encodeURIComponent(pid);
+  const p = PRODUCTS.find(x=>x.id===pid);
+  const url = p ? productUrl(p) : window.location.href;
   navigator.clipboard?.writeText(url).then(()=>toast("Link copiato!")).catch(()=>toast("Copia manuale: "+url));
 }
 
 /* ── INIT ── */
 window.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeCart();closeModal();closeAdmin();closeDetail();closeMobNav();} });
 
+// Check riepilogo automatico Telegram
+setTimeout(checkAndSendReports, 3000);
+
 // Lo script è in fondo al body — il DOM è già pronto, niente DOMContentLoaded
+// Deep link: /articolo/nome-prodotto--ID
+(function(){
+  const path = window.location.pathname;
+  const m = path.match(/articolo\/(.+?)--([^/]+)$/);
+  if(m){
+    const pid = decodeURIComponent(m[2]);
+    // Aspetta che i prodotti siano caricati, poi apri il modal
+    const _origRender = window._deepLinkPid;
+    window._deepLinkPid = pid;
+  }
+})();
 document.getElementById("yr").textContent=new Date().getFullYear();
 
 // Filtro categorie
