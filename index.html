@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nameset Italia — Stampe ufficiali per la tua maglia</title>
+<title>Archivio Calcio — Stampe ufficiali per la tua maglia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo+Narrow:wght@400;500;600;700&family=Archivo:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════
-   NAMESET ITALIA — REDESIGN
+   ARCHIVIO CALCIO — REDESIGN
    Palette: nero caldo · gold · avorio
    Type: Bebas Neue (display) + Archivo Narrow (UI)
    ═══════════════════════════════════════════════ */
@@ -714,7 +714,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   <div class="hdr-in">
     <div class="brand" onclick="scrollTo({top:0,behavior:'smooth'})">
       <div class="brand-logo">
-        <span style="color:var(--gold-hi)">NAMESET</span><span style="color:var(--ivory)">&nbsp;ITALIA</span>
+        <span style="color:var(--gold-hi)">ARCHIVIO</span><span style="color:var(--ivory)">&nbsp;CALCIO</span>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -1008,7 +1008,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 <footer class="footer">
   <div class="footer-in">
     <div>
-      <h4>Nameset Italia</h4>
+      <h4>Archivio Calcio</h4>
       <p class="brand-note">Rivendita di nameset, patch e sponsor <strong style="color:var(--ivory)">originali</strong>. Non ufficialmente affiliato ai club o alle leghe: i marchi citati appartengono ai rispettivi proprietari.</p>
     </div>
     <div>
@@ -1034,7 +1034,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
     </div>
   </div>
   <div class="copyr" ondblclick="openAdmin()" style="cursor:default">
-    &copy; <span id="yr"></span> Nameset Italia
+    &copy; <span id="yr"></span> Archivio Calcio
   </div>
 </footer>
 
@@ -1762,7 +1762,7 @@ function mountPayPal(){
     style:{color:"gold",shape:"rect",label:"paypal"},
     createOrder:(d,a)=>a.order.create({purchase_units:[{
       amount:{value:grandTotal().toFixed(2),currency_code:CONFIG.CURRENCY},
-      description:"Nameset Italia ("+cartQty()+" art.)"
+      description:"Archivio Calcio ("+cartQty()+" art.)"
     }]}),
     onApprove:(d,a)=>a.order.capture().then(()=>{
       sendTelegram(false);
@@ -1802,7 +1802,7 @@ function buildOrderMessage(isDemoMode){
     (discountAmount()>0?`Sconto -${discountPct}%: -${fmt(discountAmount())}\n`:"")+
     `Spedizione (${zone}): ${fmt(shipCost())}\n`+
     `<b>\ud83d\udcb6 TOTALE: ${fmt(grandTotal())}</b>\n`+
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u26a1\ufe0f Nameset Italia";
+    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u26a1\ufe0f Archivio Calcio";
 }
 async function sendTelegram(isDemoMode){
   if(isDemoMode&&!CONFIG.WA_NOTIFY_IN_DEMO) return;
@@ -1852,7 +1852,7 @@ const POLICIES = {
 
   termini:{ title:"Termini e condizioni del servizio", html:`
     <h4>Oggetto</h4>
-    <p>Le presenti condizioni regolano la vendita dei prodotti sul negozio Nameset Italia, gestito da [Ragione sociale].</p>
+    <p>Le presenti condizioni regolano la vendita dei prodotti sul negozio Archivio Calcio, gestito da [Ragione sociale].</p>
     <h4>Prodotti e prezzi</h4>
     <p>Tutti i prezzi sono espressi in Euro e si intendono IVA inclusa. I prezzi non comprendono le spese di spedizione, indicate separatamente al carrello.</p>
     <h4>Ordine</h4>
@@ -1886,7 +1886,7 @@ const POLICIES = {
     <h4>Originalit&agrave; dei prodotti</h4>
     <p>I nameset, le patch e gli sponsor venduti sono prodotti originali, rivenduti nello stato in cui si trovano.</p>
     <h4>Marchi e propriet&agrave; intellettuale</h4>
-    <p>I nomi delle squadre, i loghi, gli stemmi e i marchi eventualmente visibili sui prodotti appartengono ai rispettivi legittimi proprietari. Nameset Italia non &egrave; affiliato, associato, autorizzato n&eacute; sponsorizzato ufficialmente da alcun club, lega o produttore. I riferimenti a squadre o giocatori hanno finalit&agrave; puramente descrittiva del prodotto.</p>
+    <p>I nomi delle squadre, i loghi, gli stemmi e i marchi eventualmente visibili sui prodotti appartengono ai rispettivi legittimi proprietari. Archivio Calcio non &egrave; affiliato, associato, autorizzato n&eacute; sponsorizzato ufficialmente da alcun club, lega o produttore. I riferimenti a squadre o giocatori hanno finalit&agrave; puramente descrittiva del prodotto.</p>
     <h4>Hosting</h4>
     <p>Il sito &egrave; ospitato su [provider hosting].</p>
     <h4>Limitazione di responsabilit&agrave;</h4>
@@ -2192,7 +2192,7 @@ function mobSetCat(cat){
 /* ── SHARE ── */
 function shareProduct(p){
   const url  = window.location.href.split("?")[0] + "?pid=" + encodeURIComponent(p.id);
-  const text = `${p.descrizione} — ${fmt(priceOf(p))} | Nameset Italia`;
+  const text = `${p.descrizione} — ${fmt(priceOf(p))} | Archivio Calcio`;
 
   // Prova Web Share API (mobile nativo)
   if(navigator.share){
@@ -2205,9 +2205,9 @@ function shareProduct(p){
 
 function buildShareButtons(p){
   const url  = encodeURIComponent(window.location.href.split("?")[0] + "?pid=" + p.id);
-  const text = encodeURIComponent(p.descrizione + " — " + fmt(priceOf(p)) + " | Nameset Italia");
+  const text = encodeURIComponent(p.descrizione + " — " + fmt(priceOf(p)) + " | Archivio Calcio");
   const waUrl   = "https://wa.me/?text=" + text + "%20" + url;
-  const mailUrl = "mailto:?subject=" + encodeURIComponent(p.descrizione + " — Nameset Italia") +
+  const mailUrl = "mailto:?subject=" + encodeURIComponent(p.descrizione + " — Archivio Calcio") +
                   "&body=" + text + "%20" + url;
   return `
   <div class="detail-share" id="detailShareRow" style="display:none">
