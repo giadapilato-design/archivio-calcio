@@ -252,6 +252,39 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   background:linear-gradient(90deg,transparent,var(--gold),transparent);
   opacity:.4;
 }
+/* ── CAROUSEL ── */
+.carousel{position:relative;aspect-ratio:1/.95;overflow:hidden;background:var(--ink)}
+.carousel-track{display:flex;height:100%;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.carousel-slide{flex:0 0 100%;height:100%;position:relative}
+.carousel-slide img{width:100%;height:100%;object-fit:cover;display:block}
+.carousel-slide .jersey{aspect-ratio:unset;height:100%}
+.car-btn{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+  background:rgba(20,20,20,.55);border:none;color:var(--ivory);
+  width:30px;height:44px;cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  transition:.18s;backdrop-filter:blur(4px);
+}
+.car-btn:hover{background:rgba(201,162,75,.55);color:#1a1500}
+.car-btn.prev{left:0;border-radius:0 6px 6px 0}
+.car-btn.next{right:0;border-radius:6px 0 0 6px}
+.car-btn.hidden{display:none}
+.car-dots{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  display:flex;gap:5px;z-index:3;
+}
+.car-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,.35);border:none;padding:0;cursor:pointer;
+  transition:.18s;
+}
+.car-dot.active{background:var(--gold-hi);transform:scale(1.2)}
+.car-count{
+  position:absolute;bottom:8px;right:10px;z-index:3;
+  font-family:'Bebas Neue';font-size:11px;letter-spacing:.08em;
+  color:var(--ivory);background:rgba(20,20,20,.55);
+  padding:2px 7px;border-radius:4px;backdrop-filter:blur(4px);
+}
 
 /* Badge (patch/sponsor) */
 .badge-ico{
@@ -787,7 +820,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
     </div>
   </div>
 </div>
-<input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
+<input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
 
 <!-- FOOTER -->
 <footer class="footer">
@@ -833,6 +866,7 @@ const CONFIG = {
   PAYPAL_CLIENT_ID: "DEMO",
   CURRENCY: "EUR",
   SYMBOL: "\u20AC",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzmdfN-wM_ndzunXAvokBjawvqPreeWpqaVJYya3syJPBUU4ZnZlZgGXIl5cWye7ivH/exec",
   TG_TOKEN:   "8224515877:AAEneXlarKLZLWyyUEHpg-nZpTyo0WuyFqA",
   TG_CHAT_ID: "7597965422",
 
@@ -963,6 +997,8 @@ async function loadProductsFromSheet(){
       competizione: header.indexOf("COMPETIZIONE"),
       prezzo:       header.indexOf("PREZZO"),
       stock:        header.indexOf("STOCK"),
+      // Fino a 10 immagini per articolo
+      img: Array.from({length:10},(_,i)=>header.indexOf(`IMG${i+1}`)),
     };
 
     const out = [];
@@ -990,6 +1026,11 @@ async function loadProductsFromSheet(){
 
       const id = (idx.id>-1 && r[idx.id]) ? r[idx.id].trim() : slugify(`${cat}-${squadra}-${stagione}-${descrizione}-${i}`);
 
+      // Raccoglie fino a 10 URL immagine (colonne IMG1..IMG10)
+      const imgs = idx.img
+        .map(colIdx => colIdx>-1 && r[colIdx] ? r[colIdx].trim() : "")
+        .filter(Boolean);
+
       out.push({
         id,
         cat,
@@ -1001,7 +1042,8 @@ async function loadProductsFromSheet(){
         descrizioneEstesa: buildLongDescription(catLabel(cat), stagione, competizione, isJersey),
         prezzo,
         stock,
-        img: "",
+        imgs,                    // array di URL (0-10)
+        img: imgs[0] || "",      // compatibilità con codice esistente
         isJersey,
       });
     }
@@ -1053,6 +1095,73 @@ function kitColor(sq){
 }
 
 /* ── JERSEY VISUAL ── */
+/* ── CAROUSEL ── */
+function buildCarousel(p){
+  const imgs = p.imgs && p.imgs.length ? p.imgs : (p.img ? [p.img] : []);
+  if(!imgs.length) return null; // niente immagini → usa visual di default
+
+  const id = "car-" + p.id.replace(/[^a-z0-9]/g,"-");
+  const multi = imgs.length > 1;
+
+  const slides = imgs.map((url,i) =>
+    `<div class="carousel-slide">
+      <img src="${url}" alt="${p.descrizione} foto ${i+1}" loading="${i===0?'eager':'lazy'}">
+    </div>`
+  ).join("");
+
+  const dots = multi ? `<div class="car-dots" id="${id}-dots">
+    ${imgs.map((_,i)=>`<button class="car-dot ${i===0?'active':''}" onclick="carGo('${id}',${i})" aria-label="Foto ${i+1}"></button>`).join("")}
+  </div>` : "";
+
+  const count = multi ? `<span class="car-count" id="${id}-count">1/${imgs.length}</span>` : "";
+
+  const prevBtn = multi ? `<button class="car-btn prev" onclick="carStep('${id}',-1)" aria-label="Precedente">&#8249;</button>` : "";
+  const nextBtn = multi ? `<button class="car-btn next" onclick="carStep('${id}',1)" aria-label="Successiva">&#8250;</button>` : "";
+
+  return `<div class="carousel" id="${id}" data-cur="0" data-tot="${imgs.length}">
+    <div class="carousel-track" id="${id}-track">${slides}</div>
+    ${prevBtn}${nextBtn}${dots}${count}
+    <div class="kit-bar"></div>
+  </div>`;
+}
+
+// Stato carousel in memoria: {carId -> currentIndex}
+const _carState = {};
+
+function carGo(id, idx){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const tot = parseInt(el.dataset.tot||"1",10);
+  idx = ((idx % tot) + tot) % tot; // wrap
+  _carState[id] = idx;
+  const track = document.getElementById(id+"-track");
+  if(track) track.style.transform = `translateX(-${idx*100}%)`;
+  // dots
+  const dots = document.querySelectorAll(`#${id}-dots .car-dot`);
+  dots.forEach((d,i) => d.classList.toggle("active", i===idx));
+  // count
+  const cnt = document.getElementById(id+"-count");
+  if(cnt) cnt.textContent = `${idx+1}/${tot}`;
+}
+
+function carStep(id, dir){
+  const cur = _carState[id] || 0;
+  const tot = parseInt(document.getElementById(id)?.dataset.tot||"1",10);
+  carGo(id, cur+dir);
+}
+
+// Touch swipe su carousel
+function initCarouselTouch(id){
+  const el = document.getElementById(id);
+  if(!el || parseInt(el.dataset.tot||"1",10) < 2) return;
+  let startX = 0;
+  el.addEventListener("touchstart", e=>{ startX = e.touches[0].clientX; }, {passive:true});
+  el.addEventListener("touchend", e=>{
+    const diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) > 40) carStep(id, diff>0 ? 1 : -1);
+  }, {passive:true});
+}
+
 function jerseyVisual(p){
   const tag = `<span class="stock-tag">${p.stock} pz</span>`;
 
@@ -1061,7 +1170,17 @@ function jerseyVisual(p){
     ? `<span class="jersey-type-badge ${p.cat==='matchworn'?'worn':'issued'}">${p.cat==='matchworn'?'Match Worn':'Match Issued'}</span>`
     : "";
 
-  if(p.img) return `<div class="jersey">${tag}${jerseyBadge}<img src="${p.img}" alt="${p.descrizione}" loading="lazy"><div class="kit-bar"></div></div>`;
+  // Se ci sono immagini usa il carousel
+  const hasImgs = p.imgs && p.imgs.length > 0;
+  if(hasImgs){
+    const car = buildCarousel(p);
+    if(car){
+      // Aggiungi stock tag e badge sopra il carousel
+      return car
+        .replace('<div class="carousel"', `<div class="carousel" style="position:relative"`)
+        .replace('<div class="carousel-track"', `${tag}${jerseyBadge}<div class="carousel-track"`);
+    }
+  }
 
   if(p.cat==="nameset"){
     const color = kitColor(p.squadra);
@@ -1167,6 +1286,12 @@ function render(){
 
   document.getElementById("countLbl").textContent = total+" prodotti";
   renderPagination(total, pages);
+  // Inizializza touch swipe su tutti i carousel renderizzati
+  requestAnimationFrame(()=>{
+    document.querySelectorAll(".carousel[data-tot]").forEach(el=>{
+      if(parseInt(el.dataset.tot||"1",10) > 1) initCarouselTouch(el.id);
+    });
+  });
 }
 
 function renderPagination(total, pages){
@@ -1538,47 +1663,116 @@ function renderAdmin(){
   });
   document.getElementById("adminGrid").innerHTML=list.map(p=>{
     const hasImg=!!p.img;
+    const imgCount = (p.imgs||[]).length;
+    const thumbs = (p.imgs||[]).slice(0,3).map((url,i)=>
+      `<img src="${url}" alt="foto ${i+1}" style="width:32%;aspect-ratio:1;object-fit:cover;border-radius:4px;cursor:pointer" onclick="triggerUploadIdx('${p.id}',${i})">`
+    ).join("");
+    const addMore = imgCount < 10
+      ? `<button class="upload-btn" style="margin-top:6px" onclick="triggerUploadIdx('${p.id}',${imgCount})">&#8679; Aggiungi foto (${imgCount}/10)</button>`
+      : `<div style="font-size:11px;color:var(--ok);padding:6px 0">✓ 10/10 foto caricate</div>`;
     return `<div class="admin-card">
-      <div class="ac-img">${hasImg?`<img src="${p.img}" alt="${p.descrizione}" loading="lazy">`:'<div class="no-img">\ud83d\udcf7<br>Nessuna foto</div>'}</div>
+      <div class="ac-img">
+        ${imgCount>0
+          ? `<div style="display:flex;gap:3px;width:100%;height:100%;padding:4px;box-sizing:border-box;align-items:center;justify-content:center;flex-wrap:wrap">${thumbs}${imgCount>3?`<div style="font-size:10px;color:var(--muted);width:100%;text-align:center">+${imgCount-3} altre</div>`:""}</div>`
+          : '<div class="no-img">\ud83d\udcf7<br>Nessuna foto</div>'
+        }
+      </div>
       <div class="ac-body">
         <div class="ac-title">${p.descrizione}</div>
         <div class="ac-sub">${catLabel(p.cat)} &middot; ${p.stagione}</div>
-        <button class="upload-btn ${hasImg?'done':''}" id="btn-${p.id}" onclick="triggerUpload('${p.id}')">${hasImg?"\u2713 Sostituisci":"\u2b06 Carica foto"}</button>
+        <button class="upload-btn ${imgCount>0?'done':''}" id="btn-${p.id}" onclick="triggerUploadIdx('${p.id}',${imgCount<10?imgCount:0})">${imgCount>0?"\u2713 Sostituisci prima foto":"\u2b06 Carica foto"}</button>
+        ${addMore}
         <div class="admin-progress" id="prog-${p.id}"><div class="bar" id="bar-${p.id}"></div></div>
       </div>
     </div>`;
   }).join("");
 }
-function triggerUpload(id){ currentUploadId=id; const fi=document.getElementById("fileInput"); fi.value=""; fi.click(); }
+let currentUploadIdx = 0; // indice 0-9 della foto da caricare/sostituire
+
+function triggerUpload(id){ triggerUploadIdx(id, 0); }
+
+function triggerUploadIdx(id, imgIdx){
+  currentUploadId  = id;
+  currentUploadIdx = imgIdx;
+  const fi = document.getElementById("fileInput");
+  fi.value = ""; fi.click();
+}
 async function handleFileUpload(ev){
-  const file=ev.target.files[0]; if(!file||!currentUploadId) return;
-  const pid=currentUploadId;
-  const btn=document.getElementById("btn-"+pid);
-  const prog=document.getElementById("prog-"+pid);
-  const bar=document.getElementById("bar-"+pid);
-  btn.textContent="Caricamento\u2026"; btn.classList.add("uploading"); prog.style.display="block"; bar.style.width="10%";
-  const fd=new FormData();
-  fd.append("file",file); fd.append("upload_preset",CLOUDINARY_PRESET);
-  fd.append("folder","nameset-italia"); fd.append("public_id",pid);
-  try{
-    bar.style.width="40%";
-    const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:"POST",body:fd});
-    bar.style.width="80%";
-    const data=await res.json();
-    if(data.secure_url){
-      const p=PRODUCTS.find(x=>x.id===pid); if(p) p.img=data.secure_url;
-      bar.style.width="100%";
-      setTimeout(()=>{prog.style.display="none";bar.style.width="0";},600);
-      btn.textContent="\u2713 Foto caricata"; btn.classList.remove("uploading"); btn.classList.add("done");
-      render(); renderAdminStats();
-      if(navigator.clipboard) navigator.clipboard.writeText(data.secure_url).then(()=>toast("URL foto copiato!"));
-      else toast("Foto caricata!");
-    }else throw new Error(data.error?.message||"Upload fallito");
-  }catch(e){
-    bar.style.width="0"; prog.style.display="none";
-    btn.textContent="\u2717 Errore - riprova"; btn.classList.remove("uploading");
-    toast("Errore upload: "+e.message);
+  const files = Array.from(ev.target.files);
+  if(!files.length || !currentUploadId) return;
+  const pid = currentUploadId;
+  const btn = document.getElementById("btn-"+pid);
+  const prog = document.getElementById("prog-"+pid);
+  const bar  = document.getElementById("bar-"+pid);
+
+  // Limita a 10 foto totali considerando quelle già presenti
+  const p = PRODUCTS.find(x=>x.id===pid);
+  const existingCount = (p?.imgs||[]).length;
+  const maxNew = Math.min(files.length, 10 - existingCount);
+  if(maxNew <= 0){ toast("Hai già 10 foto per questo articolo"); return; }
+  const toUpload = files.slice(0, maxNew);
+  if(toUpload.length < files.length) toast(`Caricherò solo ${toUpload.length} foto (limite 10)`);
+
+  btn.textContent = "Caricamento "+toUpload.length+" foto…";
+  btn.classList.add("uploading");
+  prog.style.display="block";
+
+  let uploaded = 0;
+  for(let fileIdx=0; fileIdx<toUpload.length; fileIdx++){
+    const file = toUpload[fileIdx];
+    const imgIdx = existingCount + fileIdx;
+    bar.style.width = Math.round((fileIdx/toUpload.length)*80)+"%";
+
+    const fd=new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", CLOUDINARY_PRESET);
+    fd.append("folder", "nameset-italia");
+    fd.append("public_id", pid+"-img"+(imgIdx+1));
+    try{
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:"POST",body:fd});
+      bar.style.width="80%";
+      const data=await res.json();
+      if(data.secure_url){
+        if(!p) continue;
+        if(!p.imgs) p.imgs=[];
+        p.imgs[imgIdx] = data.secure_url;
+        p.imgs = p.imgs.filter(Boolean);
+        p.img = p.imgs[0] || "";
+        uploaded++;
+
+        // Scrivi nel Google Sheet via Apps Script (no-cors)
+        try{
+          const sheetFd = new FormData();
+          sheetFd.append("id", pid);
+          sheetFd.append("imgIndex", imgIdx);
+          sheetFd.append("imgUrl", data.secure_url);
+          await fetch(CONFIG.APPS_SCRIPT_URL, {
+            method:"POST", body:sheetFd, mode:"no-cors"
+          });
+        }catch(e){ console.warn("Sheet write error:", e); }
+
+      } else {
+        console.warn("Upload fallito per foto "+(fileIdx+1), data.error);
+      }
+    }catch(uploadErr){
+      console.warn("Errore upload foto "+(fileIdx+1), uploadErr);
+    }
+  } // fine loop foto
+
+  // Aggiorna UI
+  bar.style.width="100%";
+  setTimeout(()=>{ prog.style.display="none"; bar.style.width="0"; }, 600);
+  btn.classList.remove("uploading");
+  if(uploaded > 0){
+    btn.textContent = "\u2713 "+uploaded+(uploaded===1?" foto caricata":" foto caricate");
+    btn.classList.add("done");
+    toast("\u2713 "+uploaded+" foto caricate e salvate nel foglio!");
+  } else {
+    btn.textContent = "\u2717 Errore - riprova";
+    toast("Nessuna foto caricata. Riprova.");
   }
+  render(); renderAdminStats(); renderAdmin();
+
 }
 
 
