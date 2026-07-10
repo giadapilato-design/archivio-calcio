@@ -67,16 +67,59 @@ img{max-width:100%;display:block}
   border-left:1px solid var(--line);padding-left:14px;margin-left:4px;
 }
 .cart-btn{
-  display:inline-flex;align-items:center;gap:10px;
+  position:relative;
+  display:inline-flex;align-items:center;justify-content:center;
   background:transparent;border:1px solid var(--line);color:var(--ivory);
-  font-family:'Bebas Neue';letter-spacing:.1em;font-size:15px;
-  padding:10px 18px;border-radius:999px;cursor:pointer;transition:.2s;
+  width:44px;height:44px;border-radius:50%;cursor:pointer;transition:.2s;
+  flex-shrink:0;
 }
 .cart-btn:hover{border-color:var(--gold);color:var(--gold-hi)}
+.cart-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .cart-count{
-  min-width:20px;height:20px;padding:0 5px;border-radius:999px;
-  background:var(--gold);color:#1a1500;font-weight:700;font-size:11px;
+  position:absolute;top:-4px;right:-4px;
+  min-width:18px;height:18px;padding:0 4px;border-radius:999px;
+  background:var(--gold);color:#1a1500;font-weight:700;font-size:10px;
   display:grid;place-items:center;font-family:'Archivo Narrow';
+}
+/* Burger */
+.burger-btn{
+  display:none;background:transparent;border:1px solid var(--line);color:var(--ivory);
+  width:44px;height:44px;border-radius:50%;cursor:pointer;transition:.2s;
+  flex-direction:column;align-items:center;justify-content:center;gap:5px;
+}
+.burger-btn:hover{border-color:var(--gold);color:var(--gold-hi)}
+.burger-btn span{display:block;width:18px;height:1.5px;background:currentColor;border-radius:2px;transition:.2s}
+/* Mobile nav drawer */
+.mob-nav{
+  position:fixed;top:0;right:0;height:100%;width:min(300px,80vw);z-index:65;
+  background:var(--surface);border-left:1px solid var(--line);
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;padding:0;
+}
+.mob-nav.open{transform:translateX(0)}
+.mob-nav-head{
+  padding:18px 20px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mob-nav-head h3{font-family:'Bebas Neue';letter-spacing:.12em;font-size:17px;color:var(--gold-hi)}
+.mob-nav-body{padding:20px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1}
+.mob-chip{
+  font-family:'Bebas Neue';letter-spacing:.1em;font-size:15px;
+  background:transparent;border:1px solid var(--line-s);color:var(--muted);
+  padding:12px 16px;border-radius:8px;cursor:pointer;transition:.18s;text-align:left;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mob-chip:hover{color:var(--ivory);border-color:var(--line)}
+.mob-chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1a1500}
+.mob-chip .mob-chip-count{font-size:11px;opacity:.7}
+.mob-nav-divider{border:none;border-top:1px solid var(--line-s);margin:8px 0}
+@media(max-width:760px){
+  .burger-btn{display:inline-flex}
+  .chip-group{display:none}
+  .toolbar .chip-group{display:none}
+}
+@media(min-width:761px){
+  .mob-nav{display:none}
 }
 
 /* ── HERO ── */
@@ -87,6 +130,23 @@ img{max-width:100%;display:block}
     radial-gradient(ellipse 80% 60% at 60% 100%, rgba(201,162,75,.07) 0%, transparent 70%),
     var(--ink);
 }
+.hero-img{
+  position:absolute;right:0;top:0;bottom:0;width:45%;
+  overflow:hidden;pointer-events:none;
+}
+.hero-img img{
+  width:100%;height:100%;object-fit:cover;
+  opacity:.18;
+  mask-image:linear-gradient(to right, transparent 0%, rgba(0,0,0,.8) 40%);
+  -webkit-mask-image:linear-gradient(to right, transparent 0%, rgba(0,0,0,.8) 40%);
+}
+.hero-img-placeholder{
+  width:100%;height:100%;
+  background:linear-gradient(135deg, rgba(201,162,75,.04) 0%, rgba(201,162,75,.12) 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:80px;opacity:.15;
+}
+@media(max-width:680px){.hero-img{display:none}}
 /* Firma visiva: righe diagonali sottili che ricordano le strisce delle maglie */
 .hero::before{
   content:"";position:absolute;inset:0;
@@ -629,6 +689,23 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   .detail-info{padding:20px;max-height:none}
   .detail-wrap{margin:16px auto;padding:0 8px 40px}
 }
+
+/* ── SHARE BUTTON ── */
+.detail-share{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;
+}
+.share-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Bebas Neue';font-size:12px;letter-spacing:.08em;
+  background:var(--card);border:1px solid var(--line-s);color:var(--muted);
+  padding:8px 12px;border-radius:999px;cursor:pointer;transition:.18s;text-decoration:none;
+}
+.share-btn:hover{border-color:var(--gold);color:var(--gold-hi)}
+.share-btn.wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#25D366}
+.share-btn.wa:hover{background:rgba(37,211,102,.2)}
+.share-btn.mail{background:rgba(66,133,244,.08);border-color:rgba(66,133,244,.25);color:#4285F4}
+.share-btn.mail:hover{background:rgba(66,133,244,.15)}
+.share-btn svg{width:14px;height:14px;fill:currentColor}
 </style>
 </head>
 <body>
@@ -640,21 +717,33 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
         <span style="color:var(--gold-hi)">NAMESET</span><span style="color:var(--ivory)">&nbsp;ITALIA</span>
       </div>
     </div>
-    <button class="cart-btn" onclick="openCart()">
-      Carrello <span class="cart-count" id="cartCount">0</span>
-    </button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <!-- Carrello con icona -->
+      <button class="cart-btn" onclick="openCart()" aria-label="Carrello">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <!-- Burger menu (solo mobile) -->
+      <button class="burger-btn" onclick="openMobNav()" aria-label="Menu categorie">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
 </header>
 
 <section class="hero">
   <div class="hero-in">
+    <!-- HERO IMAGE: sostituisci "hero-placeholder" con <img src="tua-foto.jpg"> -->
+    <div class="hero-img">
+      <img src="hero-section.jpg" alt="Campo da calcio" loading="eager">
+    </div>
     <div class="hero-eye">Stampe originali &middot; pronte da applicare</div>
     <h1>
       <span class="line-white">Completa la tua maglia,</span>
       <span class="line-gold">come un vero collezionista</span>
     </h1>
     <div class="hero-body">
-      <p class="hero-desc">Nameset, patch e sponsor originali delle squadre italiane. Set fissi dei giocatori, qualit&agrave; da gara, applicazione a casa in pochi minuti.</p>
+      <p class="hero-desc">Nameset, patch e sponsor originali delle squadre italiane. Match worn e match issued dei tuoi calciatori preferiti.</p>
 
     </div>
   </div>
@@ -728,12 +817,12 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
           <option value="1984-85">1984-85</option>
     </select>
     <select id="filterKit" class="chip" onchange="onFilterChange()">
-      <option value="">Tutti i kit</option>
+      <option value="">Kit</option>
       <option value="HOME">Casa</option>
       <option value="AWAY">Trasferta</option>
       <option value="3RD">Terza</option>
       <option value="4TH">Quarta</option>
-      <option value="CL">Champions League</option>
+      <option value="CL">CL</option>
     </select>
   </div>
   <input id="searchBox" class="chip" type="search" placeholder="Cerca giocatore&hellip;"
@@ -951,6 +1040,31 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 
 <div class="toast" id="toast"></div>
 
+<!-- MOBILE NAV -->
+<div class="scrim" id="mobNavScrim" onclick="closeMobNav()" style="z-index:64"></div>
+<nav class="mob-nav" id="mobNav">
+  <div class="mob-nav-head">
+    <h3>Categorie</h3>
+    <button class="x-btn" onclick="closeMobNav()">&times;</button>
+  </div>
+  <div class="mob-nav-body" id="mobNavBody">
+    <button class="mob-chip" aria-pressed="true" data-cat="all" onclick="mobSetCat('all')">Tutti gli articoli</button>
+    <button class="mob-chip" aria-pressed="false" data-cat="nameset" onclick="mobSetCat('nameset')">Nameset</button>
+    <button class="mob-chip" aria-pressed="false" data-cat="patch" onclick="mobSetCat('patch')">Patch</button>
+    <button class="mob-chip" aria-pressed="false" data-cat="sponsor" onclick="mobSetCat('sponsor')">Sponsor</button>
+    <hr class="mob-nav-divider">
+    <button class="mob-chip" aria-pressed="false" data-cat="matchworn" onclick="mobSetCat('matchworn')">Match Worn 🥇</button>
+    <button class="mob-chip" aria-pressed="false" data-cat="matchissued" onclick="mobSetCat('matchissued')">Match Issued</button>
+    <hr class="mob-nav-divider">
+    <div style="padding:4px 0">
+      <div style="font-size:10px;letter-spacing:.12em;color:var(--gold);font-family:'Bebas Neue';margin-bottom:8px">Stagione</div>
+      <select id="mobFilterStagione" class="mob-chip" style="width:100%;border-radius:8px" onchange="onFilterChange()">
+        <option value="">Tutte le stagioni</option>
+      </select>
+    </div>
+  </div>
+</nav>
+
 <!-- WHATSAPP BUTTON -->
 <a class="wa-btn" href="https://wa.me/393518439813?text=Ciao%2C%20vorrei%20informazioni%20su%20un%20articolo" target="_blank" rel="noopener" aria-label="Contattaci su WhatsApp">
   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -985,6 +1099,12 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
             <div class="detail-feature"><span>↩️</span><span>Reso entro 14 giorni dalla ricezione</span></div>
             <div class="detail-feature"><span>✅</span><span>Provenienza magazzino squadra</span></div>
           </div>
+          <hr class="detail-divider">
+          <button class="share-btn" style="width:100%;justify-content:center;padding:10px" onclick="shareProduct(detailProduct)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Condividi articolo
+          </button>
+          <div id="detailShareRow" style="display:none"></div>
         </div>
       </div>
     </div>
@@ -2009,6 +2129,10 @@ function openDetail(id){
   btn.textContent = inCart ? "✓ Aggiunto al carrello" : "Aggiungi al carrello";
   btn.className   = "detail-add" + (inCart ? " added" : "");
 
+  // Share buttons (nascosti, appaiono dopo click Condividi)
+  const shareRow = document.getElementById("detailShareRow");
+  if(shareRow){ shareRow.style.display="none"; shareRow.innerHTML = buildShareButtons(p); }
+
   // Apri modal
   document.getElementById("detailScrim").classList.add("open");
   document.body.style.overflow = "hidden";
@@ -2034,8 +2158,81 @@ document.addEventListener("click", e=>{
   if(e.target === scrim) closeDetail();
 });
 
+/* ── MOBILE NAV ── */
+function openMobNav(){
+  document.getElementById("mobNav").classList.add("open");
+  document.getElementById("mobNavScrim").classList.add("open");
+  // Popola stagioni nel mobile nav
+  const sel = document.getElementById("mobFilterStagione");
+  const mainSel = document.getElementById("filterStagione");
+  if(sel && mainSel && sel.options.length <= 1){
+    Array.from(mainSel.options).slice(1).forEach(o=>{
+      const opt = document.createElement("option");
+      opt.value = o.value; opt.textContent = o.textContent;
+      sel.appendChild(opt);
+    });
+  }
+}
+function closeMobNav(){
+  document.getElementById("mobNav").classList.remove("open");
+  document.getElementById("mobNavScrim").classList.remove("open");
+}
+function mobSetCat(cat){
+  activeCat = cat; currentPage = 1;
+  // Aggiorna chip desktop
+  [...document.querySelectorAll("#catFilters .chip")].forEach(c=>
+    c.setAttribute("aria-pressed", c.dataset.cat===cat));
+  // Aggiorna chip mobile
+  [...document.querySelectorAll("#mobNavBody .mob-chip[data-cat]")].forEach(c=>
+    c.setAttribute("aria-pressed", c.dataset.cat===cat));
+  closeMobNav();
+  render();
+}
+
+/* ── SHARE ── */
+function shareProduct(p){
+  const url  = window.location.href.split("?")[0] + "?pid=" + encodeURIComponent(p.id);
+  const text = `${p.descrizione} — ${fmt(priceOf(p))} | Nameset Italia`;
+
+  // Prova Web Share API (mobile nativo)
+  if(navigator.share){
+    navigator.share({ title: p.descrizione, text, url }).catch(()=>{});
+    return;
+  }
+  // Fallback: mostra i bottoni
+  document.getElementById("detailShareRow").style.display = "flex";
+}
+
+function buildShareButtons(p){
+  const url  = encodeURIComponent(window.location.href.split("?")[0] + "?pid=" + p.id);
+  const text = encodeURIComponent(p.descrizione + " — " + fmt(priceOf(p)) + " | Nameset Italia");
+  const waUrl   = "https://wa.me/?text=" + text + "%20" + url;
+  const mailUrl = "mailto:?subject=" + encodeURIComponent(p.descrizione + " — Nameset Italia") +
+                  "&body=" + text + "%20" + url;
+  return `
+  <div class="detail-share" id="detailShareRow" style="display:none">
+    <a class="share-btn wa" href="${waUrl}" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp
+    </a>
+    <a class="share-btn mail" href="${mailUrl}">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Email
+    </a>
+    <button class="share-btn" onclick="copyShareLink('${p.id}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      Copia link
+    </button>
+  </div>`;
+}
+
+function copyShareLink(pid){
+  const url = window.location.href.split("?")[0] + "?pid=" + encodeURIComponent(pid);
+  navigator.clipboard?.writeText(url).then(()=>toast("Link copiato!")).catch(()=>toast("Copia manuale: "+url));
+}
+
 /* ── INIT ── */
-window.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeCart();closeModal();closeAdmin();closeDetail();} });
+window.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeCart();closeModal();closeAdmin();closeDetail();closeMobNav();} });
 
 // Lo script è in fondo al body — il DOM è già pronto, niente DOMContentLoaded
 document.getElementById("yr").textContent=new Date().getFullYear();
