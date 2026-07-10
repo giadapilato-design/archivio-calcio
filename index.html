@@ -295,7 +295,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 }
 .car-dot.active{background:var(--gold-hi);border-color:var(--gold-hi);transform:scale(1.3)}
 .car-count{
-  position:absolute;top:10px;right:10px;z-index:3;
+  position:absolute;bottom:10px;left:10px;z-index:3;
   font-family:'Bebas Neue';font-size:12px;letter-spacing:.08em;
   color:var(--ivory);background:rgba(20,20,20,.65);
   padding:3px 8px;border-radius:4px;backdrop-filter:blur(4px);
@@ -551,6 +551,84 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 :focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+
+/* ── WHATSAPP BUTTON ── */
+.wa-btn{
+  position:fixed;bottom:28px;right:24px;z-index:45;
+  width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  background:#25D366;box-shadow:0 4px 20px rgba(37,211,102,.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.wa-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(37,211,102,.55)}
+.wa-btn svg{width:30px;height:30px;fill:#fff}
+.wa-tooltip{
+  position:absolute;right:66px;top:50%;transform:translateY(-50%);
+  background:#1a1a1a;color:var(--ivory);font-family:'Bebas Neue';
+  letter-spacing:.06em;font-size:13px;padding:6px 12px;border-radius:6px;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:.2s;
+  border:1px solid var(--line);
+}
+.wa-btn:hover .wa-tooltip{opacity:1}
+
+/* ── PRODUCT DETAIL MODAL ── */
+.detail-scrim{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:55;opacity:0;visibility:hidden;transition:.25s;overflow-y:auto}
+.detail-scrim.open{opacity:1;visibility:visible}
+.detail-wrap{
+  max-width:960px;margin:40px auto;padding:0 16px 60px;
+}
+.detail-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:16px;overflow:hidden;
+}
+.detail-inner{display:grid;grid-template-columns:1fr 1fr;min-height:500px}
+.detail-gallery{position:relative;background:var(--ink)}
+.detail-gallery .carousel{aspect-ratio:unset;height:100%;min-height:360px}
+.detail-gallery .carousel-slide img{object-fit:contain}
+.detail-info{padding:32px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;max-height:80vh}
+.detail-close{
+  position:absolute;top:16px;right:16px;z-index:10;
+  background:rgba(20,20,20,.7);border:none;color:var(--ivory);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;
+  font-size:22px;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);transition:.18s;
+}
+.detail-close:hover{background:var(--gold);color:#1a1500}
+.detail-cat{font-family:'Bebas Neue';letter-spacing:.16em;font-size:11px;color:var(--gold)}
+.detail-title{font-family:'Bebas Neue';font-size:clamp(22px,4vw,34px);letter-spacing:.04em;line-height:1.1}
+.detail-price{font-family:'Bebas Neue';font-size:38px;color:var(--gold-hi);letter-spacing:.04em}
+.detail-desc{color:var(--muted);font-size:14px;line-height:1.7}
+.detail-desc p{margin:0 0 8px}
+.detail-stock{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'Bebas Neue';font-size:13px;letter-spacing:.08em;
+  color:var(--ok);background:rgba(111,168,106,.1);
+  border:1px solid rgba(111,168,106,.3);
+  padding:6px 12px;border-radius:999px;
+}
+.detail-divider{border:none;border-top:1px solid var(--line-s);margin:4px 0}
+.detail-add{
+  width:100%;background:var(--gold);color:#1a1500;border:none;
+  font-family:'Bebas Neue';text-transform:uppercase;letter-spacing:.1em;
+  font-weight:600;padding:16px;border-radius:10px;cursor:pointer;
+  font-size:16px;transition:.18s;margin-bottom:10px;
+}
+.detail-add:hover{background:var(--gold-hi)}
+.detail-add.added{background:var(--ok);color:#0d1f0a}
+.detail-paypal-note{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--muted);justify-content:center;
+}
+.detail-paypal-note svg{width:48px;opacity:.6}
+.detail-features{display:flex;flex-direction:column;gap:8px}
+.detail-feature{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.detail-feature span:first-child{font-size:16px}
+@media(max-width:680px){
+  .detail-inner{grid-template-columns:1fr}
+  .detail-gallery .carousel{min-height:280px}
+  .detail-info{padding:20px;max-height:none}
+  .detail-wrap{margin:16px auto;padding:0 8px 40px}
+}
 </style>
 </head>
 <body>
@@ -872,6 +950,46 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 </footer>
 
 <div class="toast" id="toast"></div>
+
+<!-- WHATSAPP BUTTON -->
+<a class="wa-btn" href="https://wa.me/393518439813?text=Ciao%2C%20vorrei%20informazioni%20su%20un%20articolo" target="_blank" rel="noopener" aria-label="Contattaci su WhatsApp">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+  <span class="wa-tooltip">Chiedici info</span>
+</a>
+
+<!-- PRODUCT DETAIL MODAL -->
+<div class="detail-scrim" id="detailScrim">
+  <div class="detail-wrap">
+    <div class="detail-card">
+      <div class="detail-inner">
+        <div class="detail-gallery" id="detailGallery"></div>
+        <div class="detail-info">
+          <button class="detail-close" onclick="closeDetail()" aria-label="Chiudi">&times;</button>
+          <span class="detail-cat" id="detailCat"></span>
+          <h2 class="detail-title" id="detailTitle"></h2>
+          <div class="detail-price" id="detailPrice"></div>
+          <div class="detail-stock" id="detailStock"></div>
+          <hr class="detail-divider">
+          <div class="detail-desc" id="detailDesc"></div>
+          <hr class="detail-divider">
+          <button class="detail-add" id="detailAddBtn" onclick="detailAddToCart()">Aggiungi al carrello</button>
+          <div class="detail-paypal-note">
+            <svg viewBox="0 0 24 24" fill="#003087" xmlns="http://www.w3.org/2000/svg"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.568 6.243-8.148 6.243H9.92l-1.27 8.04h3.402l.823-5.218h2.19c4.303 0 7.087-2.558 7.98-7.195.339-1.755.077-3.056-.823-4.583z"/></svg>
+            Pagamento sicuro tramite PayPal
+          </div>
+          <hr class="detail-divider">
+          <div class="detail-features">
+            <div class="detail-feature"><span>📦</span><span>Spedizione tracciata SDA — Italia 10€ · Europa 15€ · Internazionale 20€</span></div>
+            <div class="detail-feature"><span>↩️</span><span>Reso entro 14 giorni dalla ricezione</span></div>
+            <div class="detail-feature"><span>✅</span><span>Provenienza magazzino squadra</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 
@@ -1317,7 +1435,7 @@ function render(){
     const subLine = p.isJersey
       ? p.descrizioneEstesa
       : `${(p.squadra||"").replace(/JUVENTUS\s*/i,"").trim()||p.squadra} &middot; ${p.stagione}`;
-    return `<article class="card">
+    return `<article class="card" onclick="openDetail('${p.id}')" style="cursor:pointer">
       ${jerseyVisual(p)}
       <div class="card-body">
         <span class="card-cat">${catLabel(p.cat)}</span>
@@ -1325,7 +1443,7 @@ function render(){
         <span class="card-sub" style="${p.isJersey?'line-height:1.5':''}">${subLine}</span>
         <div class="card-foot">
           <span class="card-price">${fmt(priceOf(p))}</span>
-          <button class="add-btn ${inCart?'added':''}" onclick="addToCart('${p.id}')">${inCart?'Aggiunto \u2713':'Aggiungi'}</button>
+          <button class="add-btn ${inCart?'added':''}" onclick="event.stopPropagation();addToCart('${p.id}')">${inCart?'Aggiunto \u2713':'Aggiungi'}</button>
         </div>
       </div>
     </article>`;
@@ -1835,8 +1953,89 @@ async function handleFileUpload(ev){
 
 
 
+/* ── PRODUCT DETAIL MODAL ── */
+let detailProduct = null;
+
+function openDetail(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  detailProduct = p;
+
+  // Gallery
+  const galleryEl = document.getElementById("detailGallery");
+  if(p.imgs && p.imgs.length > 0){
+    const carId = "detail-car-"+p.id.replace(/[^a-z0-9]/g,"-");
+    const slides = p.imgs.map((url,i)=>
+      `<div class="carousel-slide"><img src="${url}" alt="${p.descrizione} foto ${i+1}" loading="${i===0?'eager':'lazy'}"></div>`
+    ).join("");
+    const multi = p.imgs.length > 1;
+    const dots = multi ? `<div class="car-dots">${p.imgs.map((_,i)=>`<button class="car-dot ${i===0?'active':''}" onclick="carGo('${carId}',${i})"></button>`).join("")}</div>` : "";
+    const count = multi ? `<span class="car-count">1/${p.imgs.length}</span>` : "";
+    const prev = multi ? `<button class="car-btn prev" onclick="carStep('${carId}',-1)">&#8249;</button>` : "";
+    const next = multi ? `<button class="car-btn next" onclick="carStep('${carId}',1)">&#8250;</button>` : "";
+    galleryEl.innerHTML = `<div class="carousel" id="${carId}" data-cur="0" data-tot="${p.imgs.length}" style="height:100%;min-height:360px">
+      <div class="carousel-track" id="${carId}-track">${slides}</div>
+      ${prev}${next}${dots}${count}
+    </div>`;
+    if(multi) setTimeout(()=>initCarouselTouch(carId), 100);
+  } else {
+    // Usa visual grafico se no foto
+    galleryEl.innerHTML = `<div style="height:100%;min-height:360px;display:flex;align-items:center;justify-content:center;background:var(--ink)">${jerseyVisual(p)}</div>`;
+  }
+
+  // Info
+  document.getElementById("detailCat").textContent    = catLabel(p.cat);
+  document.getElementById("detailTitle").textContent  = p.descrizione;
+  document.getElementById("detailPrice").textContent  = fmt(priceOf(p));
+  document.getElementById("detailStock").innerHTML    = `<span>✓</span> ${p.stock} ${p.stock===1?"pezzo disponibile":"pezzi disponibili"}`;
+
+  // Descrizione estesa
+  const descLines = p.isJersey ? [
+    `<p><strong>Categoria:</strong> ${catLabel(p.cat)}</p>`,
+    `<p><strong>Stagione:</strong> ${p.stagione}${p.competizione?" — "+p.competizione:""}</p>`,
+    `<p><strong>Squadra:</strong> ${p.squadra}</p>`,
+    `<p>Provenienza magazzino squadra</p>`,
+    `<p>🔍 Taglia disponibile nella foto</p>`,
+  ] : [
+    `<p><strong>Categoria:</strong> ${catLabel(p.cat)}</p>`,
+    `<p><strong>Stagione:</strong> ${p.stagione}</p>`,
+    `<p><strong>Squadra:</strong> ${p.squadra}</p>`,
+  ];
+  document.getElementById("detailDesc").innerHTML = descLines.join("");
+
+  // Bottone carrello
+  const btn = document.getElementById("detailAddBtn");
+  const inCart = !!cart[p.id];
+  btn.textContent = inCart ? "✓ Aggiunto al carrello" : "Aggiungi al carrello";
+  btn.className   = "detail-add" + (inCart ? " added" : "");
+
+  // Apri modal
+  document.getElementById("detailScrim").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeDetail(){
+  document.getElementById("detailScrim").classList.remove("open");
+  document.body.style.overflow = "";
+  detailProduct = null;
+}
+
+function detailAddToCart(){
+  if(!detailProduct) return;
+  addToCart(detailProduct.id);
+  const btn = document.getElementById("detailAddBtn");
+  btn.textContent = "✓ Aggiunto al carrello";
+  btn.className = "detail-add added";
+}
+
+// Chiudi detail con click sullo scrim (fuori dalla card)
+document.addEventListener("click", e=>{
+  const scrim = document.getElementById("detailScrim");
+  if(e.target === scrim) closeDetail();
+});
+
 /* ── INIT ── */
-window.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeCart();closeModal();closeAdmin();} });
+window.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeCart();closeModal();closeAdmin();closeDetail();} });
 
 // Lo script è in fondo al body — il DOM è già pronto, niente DOMContentLoaded
 document.getElementById("yr").textContent=new Date().getFullYear();
