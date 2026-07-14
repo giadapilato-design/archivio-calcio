@@ -92,10 +92,11 @@ img{max-width:100%;display:block}
   display:flex;align-items:center;cursor:pointer;
 }
 .logo-text{
-  font-family:"Helvetica Now Display","Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size:18px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--ivory);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;letter-spacing:.12em;text-transform:uppercase;
 }
+.logo-text .logo-archivio{color:var(--gold-hi)}
+.logo-text .logo-calcio{color:var(--ivory)}
 .brand-logo .n1{color:var(--ivory)}
 .brand-logo .gap{display:inline-block;width:5px}
 .brand-logo .i-letter{color:var(--gold)}
@@ -827,7 +828,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   <div class="hdr-in">
     <div class="brand" onclick="scrollTo({top:0,behavior:'smooth'})">
       <div class="brand-logo" onclick="window.scrollTo(0,0)" style="cursor:pointer">
-        <span class="logo-text">ARCHIVIO CALCIO</span>
+        <span class="logo-text"><span class="logo-archivio">ARCHIVIO</span> <span class="logo-calcio">CALCIO</span></span>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -2224,7 +2225,7 @@ const POLICIES = {
 
   spedizioni:{ title:"Spedizioni", html:`
     <h4>Modalit&agrave; di spedizione</h4>
-    <p>Archivio Calcio spedisce in Italia e all'estero tramite corriere espresso. Ogni ordine viene preparato e affidato al corriere entro 24/48 ore lavorative dalla conferma del pagamento.</p>
+    <p>Archivio Calcio spedisce in Italia e all'estero tramite corriere espresso. Ogni ordine viene preparato e affidato al corriere entro 24/72 ore lavorative dalla conferma del pagamento.</p>
 
     <h4>Tempi di consegna</h4>
     <ul>
