@@ -558,6 +558,53 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   letter-spacing:.08em;padding:14px;border-radius:8px;cursor:not-allowed;font-size:13px;text-align:center;
 }
 #paypal-box{min-height:6px}
+.order-submit-btn{
+  width:100%;padding:18px;margin-top:16px;
+  background:var(--gold);color:#1a1500;border:none;border-radius:10px;
+  font-family:'Bebas Neue';font-size:18px;letter-spacing:.12em;
+  cursor:pointer;transition:.18s;
+}
+.order-submit-btn:hover{background:var(--gold-hi)}
+.order-submit-btn:disabled{background:var(--muted);cursor:not-allowed;color:var(--surface)}
+.order-note{
+  text-align:center;font-size:12px;color:var(--muted);
+  margin-top:10px;line-height:1.5;
+}
+/* Popup conferma ordine */
+.order-popup-scrim{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:90;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;transition:.25s;padding:24px;
+}
+.order-popup-scrim.open{opacity:1;visibility:visible}
+.order-popup{
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  max-width:420px;width:100%;padding:32px 28px;text-align:center;
+}
+.order-popup-icon{font-size:48px;margin-bottom:12px}
+.order-popup h3{
+  font-family:'Bebas Neue';font-size:26px;letter-spacing:.08em;
+  color:var(--gold-hi);margin:0 0 8px;
+}
+.order-popup p{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 20px}
+.order-popup-total{
+  font-family:'Bebas Neue';font-size:32px;color:var(--gold);
+  margin:0 0 20px;
+}
+.order-popup-pay{
+  display:block;width:100%;padding:16px;
+  background:var(--gold);color:#1a1500;border:none;border-radius:10px;
+  font-family:'Bebas Neue';font-size:16px;letter-spacing:.1em;
+  cursor:pointer;text-decoration:none;margin-bottom:10px;transition:.18s;
+}
+.order-popup-pay:hover{background:var(--gold-hi)}
+.order-popup-close{
+  display:block;width:100%;padding:12px;
+  background:transparent;color:var(--muted);border:1px solid var(--line-s);
+  border-radius:10px;font-family:'Bebas Neue';font-size:14px;letter-spacing:.08em;
+  cursor:pointer;transition:.18s;
+}
+.order-popup-close:hover{color:var(--ivory);border-color:var(--line)}
 
 /* ── MODAL INFORMATIVE ── */
 .modal-scrim{position:fixed;inset:0;background:rgba(0,0,0,.75);opacity:0;visibility:hidden;transition:.25s;z-index:70}
@@ -581,10 +628,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 .modal-body p,.modal-body li{color:var(--ivory);font-size:14px;line-height:1.65;opacity:.88}
 .modal-body ul{padding-left:18px;margin:7px 0}
 .modal-body li{margin-bottom:5px}
-.policy-flag{
-  background:var(--card);border:1px dashed var(--line);border-radius:8px;
-  padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px;
-}
+
 .policy-flag b{color:var(--gold-hi)}
 
 /* ── ADMIN PANEL ── */
@@ -745,6 +789,36 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 .share-btn.mail{background:rgba(66,133,244,.08);border-color:rgba(66,133,244,.25);color:#4285F4}
 .share-btn.mail:hover{background:rgba(66,133,244,.15)}
 .share-btn svg{width:14px;height:14px;fill:currentColor}
+
+/* ── FORM RECESSO ── */
+.recesso-form{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.recesso-form label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;letter-spacing:.04em}
+.recesso-form input,
+.recesso-form select,
+.recesso-form textarea{
+  width:100%;padding:10px 12px;background:var(--card);
+  border:1px solid var(--line);border-radius:8px;
+  color:var(--ivory);font-size:14px;font-family:inherit;
+  box-sizing:border-box;transition:.18s;
+}
+.recesso-form input:focus,
+.recesso-form select:focus,
+.recesso-form textarea:focus{border-color:var(--gold);outline:none}
+.recesso-form textarea{resize:vertical;min-height:90px}
+.recesso-submit{
+  width:100%;padding:14px;margin-top:4px;
+  background:var(--gold);color:#1a1500;border:none;border-radius:8px;
+  font-family:'Bebas Neue';font-size:15px;letter-spacing:.1em;
+  cursor:pointer;transition:.18s;
+}
+.recesso-submit:hover{background:var(--gold-hi)}
+.recesso-submit:disabled{background:var(--muted);cursor:not-allowed}
+.recesso-note{font-size:11px;color:var(--muted);line-height:1.6;margin-top:4px}
+.recesso-ok{
+  background:rgba(111,168,106,.1);border:1px solid rgba(111,168,106,.3);
+  border-radius:8px;padding:14px;color:var(--ok);font-size:13px;
+  text-align:center;display:none;margin-top:8px;
+}
 </style>
 </head>
 <body>
@@ -894,6 +968,11 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   <div class="cart-items" id="cartItems"></div>
   <div class="drawer-foot" id="drawerFoot" style="display:none">
 
+    <div style="background:rgba(201,162,75,.08);border:1px solid rgba(201,162,75,.2);border-radius:8px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.7">
+      <b style="color:var(--gold-hi);font-family:'Bebas Neue';letter-spacing:.08em;font-size:13px">📋 COME FUNZIONA</b><br>
+      Questo è un catalogo gestito da una persona reale. Dopo l'ordine riceverai via WhatsApp il link di pagamento. <b style="color:var(--ivory)">Inserisci email e telefono reali</b> — ti contatteremo per confermare tutto.
+      <button onclick="openPage('comefunziona')" style="background:none;border:none;color:var(--gold);font-size:11px;cursor:pointer;padding:4px 0 0;display:block;text-decoration:underline">Scopri come funziona →</button>
+    </div>
     <p class="form-sec-title">Dati di spedizione</p>
     <div class="form-row">
       <div class="field"><label>Nome *</label><input id="f-nome" type="text" placeholder="Mario"></div>
@@ -989,11 +1068,30 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
     <div class="sumrow"><span>Spedizione</span><span id="cartShip">7&nbsp;&euro;</span></div>
     <div class="totrow"><span class="t-lab">Totale</span><span class="t-val" id="cartTotal">0&nbsp;&euro;</span></div>
     <p class="form-note" id="formNote">Compila tutti i campi obbligatori (*) per procedere.</p>
-    <div id="paypal-box"></div>
-    <div style="height:40px"></div><!-- spazio extra per mobile keyboard -->
+    <button class="order-submit-btn" id="orderSubmitBtn" onclick="submitOrder()">
+      Invia ordine
+    </button>
+    <div class="order-note">
+      📩 Riceverai un messaggio con il link di pagamento al numero indicato
+    </div>
+    <div style="height:40px"></div>
   </div><!-- fine drawer-foot -->
   </div><!-- fine drawer-scroll -->
 </aside>
+
+<!-- POPUP CONFERMA ORDINE -->
+<div class="order-popup-scrim" id="orderPopupScrim">
+  <div class="order-popup">
+    <div class="order-popup-icon">✅</div>
+    <h3>Ordine ricevuto!</h3>
+    <p id="orderPopupMsg">Il tuo ordine è stato registrato. Ti mandiamo subito il link per il pagamento via WhatsApp o SMS.</p>
+    <div class="order-popup-total" id="orderPopupTotal"></div>
+    <a class="order-popup-pay" id="orderPopupPayLink" href="#" target="_blank" rel="noopener">
+      💳 Paga ora con PayPal
+    </a>
+    <button class="order-popup-close" onclick="closeOrderPopup()">Chiudi</button>
+  </div>
+</div>
 
 <!-- MODAL INFORMATIVE -->
 <div class="modal-scrim" id="modalScrim" onclick="closeModal()"></div>
@@ -1053,6 +1151,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
     <div>
       <h4>Negozio</h4>
       <ul>
+        <li><a onclick="openPage('comefunziona')" style="cursor:pointer">Come funziona</a></li>
         <li><a onclick="openPage('spedizioni')">Spedizioni e tempi</a></li>
         <li><a onclick="openPage('reso')">Resi e rimborsi</a></li>
         <li><a href="mailto:[email]">Contatti</a></li>
@@ -1128,9 +1227,8 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
           <div class="detail-desc" id="detailDesc"></div>
           <hr class="detail-divider">
           <button class="detail-add" id="detailAddBtn" onclick="detailAddToCart()">Aggiungi al carrello</button>
-          <div class="detail-paypal-note">
-            <svg viewBox="0 0 24 24" fill="#003087" xmlns="http://www.w3.org/2000/svg"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.568 6.243-8.148 6.243H9.92l-1.27 8.04h3.402l.823-5.218h2.19c4.303 0 7.087-2.558 7.98-7.195.339-1.755.077-3.056-.823-4.583z"/></svg>
-            Pagamento sicuro tramite PayPal
+          <div class="detail-paypal-note" style="justify-content:flex-start;gap:6px">
+            💳 Pagamento via PayPal al completamento dell'ordine
           </div>
           <hr class="detail-divider">
           <div class="detail-features">
@@ -1162,7 +1260,7 @@ function getNextOrderNum(){
 }
 
 const CONFIG = {
-  PAYPAL_CLIENT_ID: "DEMO",
+  PAYPAL_ME: "https://www.paypal.com/send?recipient=info%40calciomania.com",
   CURRENCY: "EUR",
   SYMBOL: "\u20AC",
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzmdfN-wM_ndzunXAvokBjawvqPreeWpqaVJYya3syJPBUU4ZnZlZgGXIl5cWye7ivH/exec",
@@ -1371,7 +1469,12 @@ let perPage = 10;
 let currentPage = 1;
 
 const fmt = n => n + "\u00A0" + CONFIG.SYMBOL;
-const priceOf = p => p.prezzo || PRICES[p.cat];
+const priceOf = p => {
+  const base = p.prezzo || PRICES[p.cat] || 0;
+  // +3€ su tutti gli articoli tranne Match Worn e Match Issued
+  const isJerseyCategory = p.cat === "matchworn" || p.cat === "matchissued";
+  return isJerseyCategory ? base : base + 3;
+};
 
 
 /* ── KIT COLOR ── */
@@ -1823,8 +1926,74 @@ function mountPayPal(){
 }
 function fakeCheckout(){
   sendTelegram(true);
-  toast("Demo: ordine simulato \u2713");
+  toast("Demo: ordine simulato ✓");
   cart={};updateCart();render();setTimeout(closeCart,500);
+}
+
+async function submitOrder(){
+  // Valida il form
+  const addr = getShippingAddress();
+  const required = ["nome","cognome","email","tel","indirizzo","cap","citta","paese"];
+  const missing = required.filter(k => !addr[k] || !addr[k].trim());
+  if(missing.length > 0){
+    toast("Compila tutti i campi obbligatori");
+    document.getElementById("formNote").textContent = "Compila tutti i campi per procedere: " + missing.join(", ");
+    return;
+  }
+  if(Object.keys(cart).length === 0){ toast("Il carrello è vuoto"); return; }
+
+  const btn = document.getElementById("orderSubmitBtn");
+  btn.disabled = true;
+  btn.textContent = "Invio in corso…";
+
+  // Invia riepilogo a Telegram
+  await sendTelegram(false);
+
+  // Invia messaggio WhatsApp automatico all'acquirente
+  const addr2 = getShippingAddress();
+  if(addr2.tel){
+    const waNumber = addr2.tel.replace(/[^0-9]/g,"");
+    const items2 = cartArray();
+    const prodotti = items2.map(it => `• ${it.product.descrizione} x${it.qty}`).join("%0A");
+    const totale2 = grandTotal();
+    const payLink2 = encodeURIComponent(CONFIG.PAYPAL_ME + "&amount=" + totale2.toFixed(2) + "&currencyCode=EUR");
+    const waMsg = encodeURIComponent(
+      "Ciao " + addr2.nome + "! 👋\n\n" +
+      "Ho ricevuto il tuo ordine su Archivio Calcio:\n"
+    ) + prodotti + encodeURIComponent(
+      "\n\nTotale: " + fmt(totale2) + "\n\n" +
+      "Clicca qui per completare il pagamento:\n"
+    ) + payLink2 + encodeURIComponent(
+      "\n\nAppena confermato il pagamento procedo con la spedizione. " +
+      "Per qualsiasi info rispondo qui su WhatsApp 🙌\n\nArchivio Calcio"
+    );
+    // Apri WhatsApp in background (si apre in nuova tab)
+    window.open("https://wa.me/" + waNumber + "?text=" + waMsg, "_blank");
+  }
+
+  // Calcola totale e prepara link pagamento
+  const total = cartTotal();
+  const payLink = CONFIG.PAYPAL_ME + "&amount=" + total.toFixed(2) + "&currencyCode=EUR";
+
+  // Mostra popup con link pagamento
+  document.getElementById("orderPopupTotal").textContent = fmt(total);
+  document.getElementById("orderPopupMsg").textContent =
+    "Grazie " + addr.nome + "! Il tuo ordine è stato registrato. " +
+    "Clicca qui sotto per completare il pagamento — ti arriverà anche conferma via messaggio.";
+  document.getElementById("orderPopupPayLink").href = payLink;
+
+  // Apri popup
+  document.getElementById("orderPopupScrim").classList.add("open");
+
+  // Reset carrello
+  cart = {}; updateCart(); render();
+  btn.disabled = false;
+  btn.textContent = "Invia ordine";
+}
+
+function closeOrderPopup(){
+  document.getElementById("orderPopupScrim").classList.remove("open");
+  closeCart();
 }
 
 /* ── TELEGRAM ── */
@@ -1852,6 +2021,8 @@ function buildOrderMessage(isDemoMode, orderNum){
     (discountAmount()>0?`Sconto -${discountPct}%: -${fmt(discountAmount())}\n`:"")+
     `Spedizione (${zone}): ${fmt(shipCost())}\n`+
     `<b>\ud83d\udcb6 TOTALE: ${fmt(grandTotal())}</b>\n`+
+    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"+
+    `\ud83d\udcb3 <b>LINK PAGAMENTO:</b> ${CONFIG.PAYPAL_ME}/${grandTotal().toFixed(2)}EUR\n`+
     "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u26a1\ufe0f Archivio Calcio";
 }
 async function sendTelegram(isDemoMode){
@@ -1965,21 +2136,57 @@ function checkAndSendReports(){
 }
 
 /* ── INFORMATIVE ── */
-const FLAG=`<div class="policy-flag"><b>Bozza da personalizzare.</b> Sostituisci i campi tra [parentesi] con i dati reali e fai verificare i testi prima della pubblicazione.</div>`;
+const FLAG="";
 const POLICIES = {
-  reso:{ title:"Politica di reso", html:`
+  reso:{ title:"Resi e Rimborsi", html:`
     <h4>Diritto di recesso</h4>
-    <p>Hai 14 giorni dalla ricezione dell'ordine per esercitare il diritto di recesso, senza obbligo di motivazione, ai sensi del Codice del Consumo (D.Lgs. 206/2005).</p>
-    <h4>Condizioni</h4>
-    <ul><li>Prodotto integro e non utilizzato;</li><li>non applicato n&eacute; termoadesivato su alcun capo;</li><li>imballo e accessori originali.</li></ul>
-    <h4>Prodotti esclusi</h4>
-    <p>I nameset, le patch e gli sponsor realizzati su misura o personalizzati su richiesta sono esclusi dal recesso (art. 59 Cod. Consumo). I set fissi a catalogo non personalizzati rientrano invece nel diritto di recesso.</p>
-    <h4>Come richiedere il reso</h4>
-    <p>Scrivi a [email] entro 14 giorni indicando numero d'ordine e prodotti. Ricevuta conferma, spedisci i prodotti a [indirizzo di reso].</p>
+    <p>Ai sensi del Codice del Consumo (D. Lgs. 206/2005), hai il diritto di recedere dall'acquisto entro 14 giorni dalla data di ricezione dell'ordine, senza dover fornire alcuna motivazione.</p>
+    <div class="recesso-form">
+      <div>
+        <label>Numero ordine *</label>
+        <input id="rec-ordine" type="text" placeholder="es. #1" required>
+      </div>
+      <div>
+        <label>Indirizzo e-mail di fatturazione *</label>
+        <input id="rec-email" type="email" placeholder="la tua email" required>
+      </div>
+      <div>
+        <label>Motivo del recesso *</label>
+        <textarea id="rec-motivo" placeholder="Descrivi brevemente il motivo del recesso" required></textarea>
+      </div>
+      <p class="recesso-note">Inserisci il numero dell'ordine e l'e-mail di fatturazione per iniziare. Se i tuoi dati corrispondono ai nostri record, riceverai un'e-mail di verifica. Dopo aver verificato la tua email, puoi scegliere quali articoli ritirare.</p>
+      <button class="recesso-submit" id="rec-btn" onclick="inviaRecesso()">Invia richiesta di recesso</button>
+      <div class="recesso-ok" id="rec-ok">✅ Richiesta inviata! Ti contatteremo entro 24 ore lavorative.</div>
+    </div>
+
+    <h4>Condizioni per il reso</h4>
+    <ul>
+      <li>I prodotti devono essere restituiti integri, non utilizzati e nelle stesse condizioni in cui sono stati ricevuti.</li>
+      <li>Eventuali confezioni originali, etichette o imballaggi devono essere inclusi.</li>
+      <li>Non sono accettati resi di articoli personalizzati o realizzati su richiesta specifica del cliente.</li>
+    </ul>
+
+    <h4>Procedura di reso</h4>
+    <ol>
+      <li>Contatta il servizio clienti entro 14 giorni dalla ricezione dell'ordine.</li>
+      <li>Ricevi le istruzioni di reso con l'indirizzo a cui spedire il pacco.</li>
+      <li>Spedisci il prodotto utilizzando un corriere tracciato a tua scelta.</li>
+    </ol>
+    <p>Le spese di spedizione del reso sono a carico del cliente, salvo diverso accordo.</p>
+
     <h4>Rimborso</h4>
-    <p>Il rimborso avviene entro 14 giorni dal ricevimento del reso, con lo stesso metodo di pagamento. Le spese di spedizione del reso sono a carico del cliente, salvo prodotto difettoso o errato.</p>
-    <h4>Prodotti difettosi</h4>
-    <p>In caso di prodotto difettoso o non conforme, contattaci: provvederemo a sostituzione o rimborso, con spese a nostro carico.</p>`},
+    <p>Una volta ricevuto e verificato il reso, procederemo al rimborso entro 14 giorni dalla data di ricezione della comunicazione di recesso. Il rimborso verrà effettuato con lo stesso metodo di pagamento utilizzato per l'acquisto, salvo diverso accordo con il cliente.</p>
+
+    <h4>Prodotti difettosi o errati</h4>
+    <p>In caso di prodotti difettosi o inviati erroneamente, le spese di spedizione per il reso saranno a carico di Archivio Calcio. Dopo la verifica, potrai scegliere tra:</p>
+    <ul>
+      <li>Sostituzione del prodotto</li>
+      <li>Rimborso totale</li>
+    </ul>
+
+    <h4>Contatti per resi e recessi</h4>
+    <p>Per qualsiasi richiesta o chiarimento scrivi al nostro servizio clienti:<br>
+    📱 <a href="https://wa.me/393518439813" target="_blank" rel="noopener" style="color:var(--gold)">+39 351 843 9813</a></p>`},
 
   privacy:{ title:"Informativa sulla privacy", html:`
     <h4>Titolare del trattamento</h4>
@@ -2015,17 +2222,77 @@ const POLICIES = {
     <h4>Legge applicabile e foro</h4>
     <p>Il contratto &egrave; regolato dalla legge italiana. Per i consumatori &egrave; competente il foro del luogo di residenza o domicilio. &Egrave; disponibile la piattaforma ODR della Commissione Europea per la risoluzione online delle controversie.</p>`},
 
-  spedizioni:{ title:"Informativa sulle spedizioni", html:`
-    <h4>Costi di spedizione</h4>
-    <ul><li><b>Italia</b> &mdash; 7&euro; (tariffa fissa per ordine);</li><li><b>Estero</b> &mdash; 15&euro; (tariffa fissa per ordine).</li></ul>
-    <h4>Tempi di lavorazione</h4>
-    <p>Gli ordini vengono evasi entro [1-3] giorni lavorativi dalla conferma del pagamento.</p>
+  spedizioni:{ title:"Spedizioni", html:`
+    <h4>Modalit&agrave; di spedizione</h4>
+    <p>Archivio Calcio spedisce in Italia e all'estero tramite corriere espresso. Ogni ordine viene preparato e affidato al corriere entro 24/48 ore lavorative dalla conferma del pagamento.</p>
+
     <h4>Tempi di consegna</h4>
-    <p>Italia: indicativamente [2-5] giorni lavorativi. Estero: [5-15] giorni lavorativi in base alla destinazione.</p>
-    <h4>Tracciamento</h4>
-    <p>Riceverai via email il codice di tracciamento appena la spedizione viene affidata al corriere.</p>
-    <h4>Ritardi e smarrimenti</h4>
-    <p>Eventuali ritardi del corriere non sono imputabili al venditore. In caso di smarrimento contattaci a [email].</p>`},
+    <ul>
+      <li><b>Italia peninsulare:</b> 7&ndash;9 giorni lavorativi</li>
+      <li><b>Isole e zone remote:</b> 8&ndash;10 giorni lavorativi</li>
+      <li><b>Unione Europea:</b> 9&ndash;12 giorni lavorativi</li>
+      <li><b>Extra UE:</b> 12&ndash;19 giorni lavorativi (in base alla destinazione e alle procedure doganali)</li>
+    </ul>
+    <p>I tempi indicati sono stimati e possono variare in caso di festivit&agrave;, scioperi, eventi straordinari o controlli doganali.</p>
+
+    <h4>Costi di spedizione</h4>
+    <p>I costi di spedizione non sono fissi, ma variano in base a:</p>
+    <ul>
+      <li>Paese di destinazione</li>
+      <li>Peso e volume del pacco</li>
+      <li>Servizi del corriere selezionato</li>
+    </ul>
+    <p>Per garantire la massima trasparenza, l'importo della spedizione viene sempre calcolato automaticamente e mostrato in fase di acquisto, prima della conferma dell'ordine.</p>
+    <p>Per le spedizioni al di fuori dell'Unione Europea, eventuali oneri doganali o tasse di importazione restano a carico del cliente.</p>
+
+    <h4>Relazioni sull'ordine</h4>
+    <p>Il tracking online non &egrave; disponibile. Per ricevere aggiornamenti relativi allo stato dell'ordine o della spedizione, ti invitiamo a contattarci direttamente tramite WhatsApp al numero indicato sul sito.</p>
+
+    <h4>Mancata consegna</h4>
+    <p>Se il corriere non riesce a consegnare l'ordine, verr&agrave; effettuato un nuovo tentativo o il pacco sar&agrave; messo in giacenza presso la filiale di zona. Ti invitiamo a verificare con attenzione i dati di spedizione inseriti in fase d'ordine per evitare ritardi o costi aggiuntivi.</p>
+
+    <h4>Informazioni legali</h4>
+    <ul>
+      <li>Ai sensi del Codice del Consumo (D. Lgs. 206/2005), l'utente ha diritto a ricevere il prodotto entro 30 giorni dall'acquisto. In caso contrario, potr&agrave; richiedere il rimborso o la risoluzione del contratto.</li>
+      <li>Il Regolamento (UE) 2018/302 garantisce la parit&agrave; di trattamento dei consumatori, senza discriminazioni basate sulla nazionalit&agrave; o sul luogo di residenza.</li>
+      <li>Per le spedizioni extra UE, eventuali dazi e tasse di importazione sono a carico del destinatario.</li>
+    </ul>`},
+
+  comefunziona:{ title:"Come funziona", html:`
+    <div style="text-align:center;padding:8px 0 20px">
+      <p style="color:var(--gold);font-family:'Bebas Neue';font-size:18px;letter-spacing:.1em">ARCHIVIO CALCIO È UN CATALOGO, NON UN E-COMMERCE AUTOMATICO</p>
+      <p style="color:var(--muted);font-size:14px;line-height:1.7">Dietro ogni ordine c'è una persona fisica che segue personalmente ogni acquisto, dalla conferma al tracking.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">🛒</span>
+        <div><b style="font-family:'Bebas Neue';letter-spacing:.06em;font-size:15px">1. SCEGLI E AGGIUNGI AL CARRELLO</b>
+        <p style="color:var(--muted);font-size:13px;margin:4px 0 0;line-height:1.6">Sfoglia il catalogo e aggiungi al carrello gli articoli che ti interessano.</p></div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">📋</span>
+        <div><b style="font-family:'Bebas Neue';letter-spacing:.06em;font-size:15px">2. INSERISCI I TUOI DATI</b>
+        <p style="color:var(--muted);font-size:13px;margin:4px 0 0;line-height:1.6">Compila il modulo con nome, indirizzo, <b>email e numero di telefono reali</b> — ti contatteremo per confermare l'ordine e inviarti il pagamento.</p></div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">✅</span>
+        <div><b style="font-family:'Bebas Neue';letter-spacing:.06em;font-size:15px">3. INVIA L'ORDINE</b>
+        <p style="color:var(--muted);font-size:13px;margin:4px 0 0;line-height:1.6">Clicca "Invia ordine". Riceveremo immediatamente il riepilogo del tuo acquisto.</p></div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">💳</span>
+        <div><b style="font-family:'Bebas Neue';letter-spacing:.06em;font-size:15px">4. RICEVI IL LINK DI PAGAMENTO</b>
+        <p style="color:var(--muted);font-size:13px;margin:4px 0 0;line-height:1.6">Ti mandiamo via WhatsApp o SMS il link per effettuare il pagamento in totale sicurezza tramite PayPal.</p></div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">📦</span>
+        <div><b style="font-family:'Bebas Neue';letter-spacing:.06em;font-size:15px">5. SPEDIZIONE E TRACKING</b>
+        <p style="color:var(--muted);font-size:13px;margin:4px 0 0;line-height:1.6">Confermato il pagamento, prepariamo e spediamo il tuo ordine. Riceverai il codice di tracciamento appena disponibile.</p></div>
+      </div>
+    </div>
+    <div style="margin-top:24px;padding:16px;background:rgba(201,162,75,.08);border:1px solid rgba(201,162,75,.2);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.6">
+      📞 Per qualsiasi domanda siamo disponibili su WhatsApp al <b style="color:var(--ivory)">+39 351 843 9813</b>
+    </div>`},
 
   legale:{ title:"Informativa legale", html:`
     <h4>Identit&agrave; del venditore</h4>
@@ -2392,8 +2659,68 @@ function copyShareLink(pid){
   navigator.clipboard?.writeText(url).then(()=>toast("Link copiato!")).catch(()=>toast("Copia manuale: "+url));
 }
 
+/* ── FORM RECESSO ── */
+async function inviaRecesso(){
+  const ordine = document.getElementById("rec-ordine")?.value?.trim();
+  const email  = document.getElementById("rec-email")?.value?.trim();
+  const motivo = document.getElementById("rec-motivo")?.value?.trim();
+  const btn    = document.getElementById("rec-btn");
+  const ok     = document.getElementById("rec-ok");
+
+  if(!ordine || !email || !motivo){
+    toast("Compila tutti i campi obbligatori");
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    toast("Inserisci un indirizzo email valido");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Invio in corso…";
+
+  // Invia via EmailJS (servizio gratuito) oppure via mailto fallback
+  const subject = encodeURIComponent("Richiesta di recesso — Ordine " + ordine);
+  const body = encodeURIComponent(
+    "RICHIESTA DI RECESSO\n\n" +
+    "Numero ordine: " + ordine + "\n" +
+    "Email cliente: " + email + "\n\n" +
+    "Motivo del recesso:\n" + motivo + "\n\n" +
+    "--- Inviato da Archivio Calcio ---"
+  );
+
+  // Prova apertura mailto (fallback universale)
+  try{
+    // Notifica anche su Telegram
+    const tgMsg = "📋 <b>RICHIESTA DI RECESSO</b>\n" +
+      "━━━━━━━━━━━━━━\n" +
+      "📦 <b>Ordine:</b> " + ordine + "\n" +
+      "📧 <b>Email:</b> " + email + "\n" +
+      "📝 <b>Motivo:</b> " + motivo;
+
+    await fetch("https://api.telegram.org/bot" + CONFIG.TG_TOKEN + "/sendMessage", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({chat_id: CONFIG.TG_CHAT_ID, text: tgMsg, parse_mode:"HTML"})
+    });
+
+    // Apri mailto come conferma visiva
+    window.location.href = "mailto:giadapilato28@gmail.com?subject=" + subject + "&body=" + body;
+
+    btn.textContent = "Richiesta inviata ✓";
+    ok.style.display = "block";
+    document.getElementById("rec-ordine").value = "";
+    document.getElementById("rec-email").value = "";
+    document.getElementById("rec-motivo").value = "";
+  } catch(e){
+    btn.disabled = false;
+    btn.textContent = "Invia richiesta di recesso";
+    toast("Errore invio. Contattaci su WhatsApp.");
+  }
+}
+
 /* ── INIT ── */
-window.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeCart();closeModal();closeAdmin();closeDetail();closeMobNav();} });
+window.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeCart();closeModal();closeAdmin();closeDetail();closeMobNav();closeOrderPopup();} });
 
 // Check riepilogo automatico Telegram
 setTimeout(checkAndSendReports, 3000);
