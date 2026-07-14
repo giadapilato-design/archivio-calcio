@@ -1162,6 +1162,7 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
       <ul>
         <li><a onclick="openPage('reso')">Politica di reso</a></li>
         <li><a onclick="openPage('privacy')">Informativa sulla privacy</a></li>
+        <li><a onclick="openPage('cookie')" style="cursor:pointer">Cookie Policy</a></li>
         <li><a onclick="openPage('termini')">Termini e condizioni</a></li>
         <li><a onclick="openPage('spedizioni')">Informativa sulle spedizioni</a></li>
         <li><a onclick="openPage('legale')">Informativa legale</a></li>
@@ -2006,7 +2007,8 @@ function buildOrderMessage(isDemoMode, orderNum){
     const p=it.product;
     return `  \u2022 ${catLabel(p.cat)}: ${p.descrizione} x${it.qty} = ${fmt(priceOf(p)*it.qty)}`;
   }).join("\n");
-  return (isDemoMode?"<b>\ud83e\uddea ORDINE DEMO</b>\n":"<b>\ud83d\uded2 NUOVO ORDINE</b>\n")+
+  const _label = isDemoMode ? "<b>\ud83e\uddea ORDINE DEMO</b>" : ("<b>\ud83d\uded2 ORDINE N\u00b0 "+(orderNum||"")+"</b>");
+  return _label+"\n"+
     "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"+
     `\ud83d\udcc5 <b>Data:</b> ${now}\n`+
     "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"+
@@ -2021,8 +2023,6 @@ function buildOrderMessage(isDemoMode, orderNum){
     (discountAmount()>0?`Sconto -${discountPct}%: -${fmt(discountAmount())}\n`:"")+
     `Spedizione (${zone}): ${fmt(shipCost())}\n`+
     `<b>\ud83d\udcb6 TOTALE: ${fmt(grandTotal())}</b>\n`+
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"+
-    `\ud83d\udcb3 <b>LINK PAGAMENTO:</b> ${CONFIG.PAYPAL_ME}/${grandTotal().toFixed(2)}EUR\n`+
     "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u26a1\ufe0f Archivio Calcio";
 }
 async function sendTelegram(isDemoMode){
@@ -2281,8 +2281,8 @@ const POLICIES = {
       </div>
       <div style="display:flex;gap:16px;align-items:flex-start">
         <span style="font-size:28px;flex-shrink:0">💳</span>
-        <div><b style="font-family:'Bebas Neue';letter-spacing:.06em;font-size:15px">4. RICEVI IL LINK DI PAGAMENTO</b>
-        <p style="color:var(--muted);font-size:13px;margin:4px 0 0;line-height:1.6">Ti mandiamo via WhatsApp o SMS il link per effettuare il pagamento in totale sicurezza tramite PayPal.</p></div>
+        <div><b style="font-family:'Bebas Neue';letter-spacing:.06em;font-size:15px">4. RICEVERAI IL LINK DI PAGAMENTO</b>
+        <p style="color:var(--muted);font-size:13px;margin:4px 0 0;line-height:1.6">Ti contatteremo via WhatsApp per effettuare il pagamento in totale sicurezza tramite PayPal.</p></div>
       </div>
       <div style="display:flex;gap:16px;align-items:flex-start">
         <span style="font-size:28px;flex-shrink:0">📦</span>
@@ -2305,6 +2305,47 @@ const POLICIES = {
     <p>Il sito &egrave; ospitato su [provider hosting].</p>
     <h4>Limitazione di responsabilit&agrave;</h4>
     <p>Il venditore non &egrave; responsabile per usi impropri dei prodotti, ad esempio un'applicazione errata del trasferimento a caldo.</p>`},
+
+  cookie:{ title:"Cookie Policy", html:`
+    <p style="color:var(--muted);font-size:12px">Ultimo aggiornamento: 15 ottobre 2025</p>
+
+    <h4>1. Cosa sono i cookie</h4>
+    <p>I cookie sono piccoli file di testo che i siti visitati inviano al browser dell'utente, dove vengono memorizzati per essere poi ritrasmessi al sito nelle visite successive. Servono per migliorare l'esperienza di navigazione e per fornire informazioni statistiche o pubblicitarie.</p>
+
+    <h4>2. Tipologie di cookie utilizzati</h4>
+    <p><b>a) Cookie tecnici (necessari)</b><br>Essenziali per il funzionamento del sito e per consentire la navigazione. Non richiedono consenso.</p>
+    <p><b>b) Cookie di funzionalità</b><br>Permettono di ricordare preferenze e impostazioni (lingua, accesso, carrello). Possono essere disattivati ma il sito potrebbe non funzionare correttamente.</p>
+    <p><b>c) Cookie analitici</b><br>Raccolgono dati anonimi e aggregati sull'uso del sito (es. pagine visitate, tempo di permanenza). Se installati tramite strumenti di terze parti (es. Google Analytics), sono attivati solo previo consenso.</p>
+    <p><b>d) Cookie di profilazione e marketing</b><br>Servono a creare profili relativi all'utente e mostrare contenuti o annunci in linea con i suoi interessi. Sono installati solo previo consenso esplicito tramite il banner.</p>
+
+    <h4>3. Cookie di terze parti</h4>
+    <p>Durante la navigazione potresti ricevere cookie da:</p>
+    <ul>
+      <li><b>Google Analytics / Google Tag Manager</b> (Google Ireland Ltd.) &ndash; analisi statistiche anonime;</li>
+      <li><b>Meta</b> (Facebook/Instagram) &ndash; pubblicità e remarketing;</li>
+      <li><b>YouTube / Vimeo</b> &ndash; contenuti video integrati;</li>
+      <li><b>PayPal / Stripe / Klarna</b> &ndash; pagamenti online.</li>
+    </ul>
+    <p>Le relative informative sono disponibili sui siti ufficiali dei fornitori.</p>
+
+    <h4>4. Gestione dei cookie</h4>
+    <p>Puoi accettare, rifiutare o gestire le preferenze tramite il banner cookie attivo su ogni pagina. Puoi inoltre modificare o revocare il consenso in qualsiasi momento cliccando su "Gestisci cookie" nel footer del sito.</p>
+    <p><b>Gestione browser:</b></p>
+    <ul>
+      <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener" style="color:var(--gold)">Chrome</a></li>
+      <li><a href="https://support.mozilla.org/it/kb/Gestione%20dei%20cookie" target="_blank" rel="noopener" style="color:var(--gold)">Firefox</a></li>
+      <li><a href="https://support.apple.com/it-it/guide/safari/sfri11471/mac" target="_blank" rel="noopener" style="color:var(--gold)">Safari</a></li>
+    </ul>
+
+    <h4>5. Durata dei cookie</h4>
+    <ul>
+      <li><b>Di sessione:</b> cancellati alla chiusura del browser;</li>
+      <li><b>Persistenti:</b> restano salvati per un periodo prestabilito (fino a 12 mesi).</li>
+    </ul>
+
+    <h4>6. Aggiornamenti</h4>
+    <p>Questa Cookie Policy può essere aggiornata in base a modifiche normative o tecniche. La versione sempre aggiornata è disponibile su questa pagina.</p>`},
+
 };
 function openPage(key){
   const p=POLICIES[key]; if(!p) return;
