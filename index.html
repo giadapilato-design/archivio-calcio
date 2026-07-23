@@ -986,10 +986,10 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
   <div class="toolbar-meta">
     <div class="per-page">
       <span>Mostra</span>
-      <button class="pp-btn active" data-pp="10" onclick="setPerPage(10)">10</button>
-      <button class="pp-btn" data-pp="25" onclick="setPerPage(25)">25</button>
-      <button class="pp-btn" data-pp="50" onclick="setPerPage(50)">50</button>
-      <button class="pp-btn" data-pp="100" onclick="setPerPage(100)">100</button>
+      <button class="pp-btn active" data-pp="100" onclick="setPerPage(100)">100</button>
+      <button class="pp-btn" data-pp="200" onclick="setPerPage(200)">200</button>
+      <button class="pp-btn" data-pp="300" onclick="setPerPage(300)">300</button>
+      <button class="pp-btn" data-pp="500" onclick="setPerPage(500)">500</button>
     </div>
     <div class="count-lbl" id="countLbl"></div>
   </div>
@@ -1159,6 +1159,12 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
         <h2>&#9881; Gestione immagini</h2>
         <button class="x-btn" onclick="closeAdmin()" style="font-size:30px">&times;</button>
       </div>
+      <!-- Pulsanti report -->
+      <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="inviaReportManuale('settimanale')" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--line);color:var(--ivory);border-radius:8px;font-family:'Bebas Neue';letter-spacing:.08em;font-size:13px;cursor:pointer">📊 Report 7gg</button>
+        <button onclick="inviaReportManuale('mensile')" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--line);color:var(--ivory);border-radius:8px;font-family:'Bebas Neue';letter-spacing:.08em;font-size:13px;cursor:pointer">📅 Report Mese</button>
+        <button onclick="inviaReportManuale('totale')" style="flex:1;min-width:100%;padding:10px;background:rgba(201,162,75,.1);border:1px solid var(--gold);color:var(--gold);border-radius:8px;font-family:'Bebas Neue';letter-spacing:.08em;font-size:13px;cursor:pointer">💰 Report Totale</button>
+      </div>
       <div class="admin-stats" id="adminStats"></div>
       <div class="admin-filter-row">
         <select id="aFilterCat" onchange="renderAdmin()">
@@ -1295,11 +1301,60 @@ input[type=search].chip::placeholder{color:var(--muted);opacity:.7}
 
 <script>
 /* ===================== CONFIG ===================== */
-// Contatore ordini — persiste in localStorage
-function getNextOrderNum(){
-  const n = parseInt(localStorage.getItem("ac_order_seq")||"0",10) + 1;
-  localStorage.setItem("ac_order_seq", n);
-  return n;
+// Contatore ordini — centralizzato nel Google Sheet tramite Apps Script
+async function getNextOrderNum(){
+  return new Promise((resolve)=>{
+    const cbName = "cb_ordernum_" + Date.now();
+    const script = document.createElement("script");
+    const params = new URLSearchParams({ action:"nextOrder", callback: cbName });
+    script.src = CONFIG.APPS_SCRIPT_URL + "?" + params.toString();
+    script.onerror = ()=>{ cleanup(); resolve("X"); };
+    window[cbName] = (data)=>{
+      cleanup();
+      resolve(data.orderNum || "X");
+    };
+    function cleanup(){ delete window[cbName]; script.remove(); }
+    setTimeout(()=>{ cleanup(); resolve("X"); }, 8000);
+    document.head.appendChild(script);
+  });
+}
+
+// Salva ordine nel Google Sheet tramite Apps Script
+async function saveOrderToSheet(orderNum, orderData){
+  return new Promise((resolve)=>{
+    const cbName = "cb_saveorder_" + Date.now();
+    const script = document.createElement("script");
+    const params = new URLSearchParams({
+      action: "saveOrder",
+      orderNum,
+      cliente: orderData.cliente,
+      email: orderData.email,
+      articoli: orderData.articoli,
+      totale: orderData.totale,
+      callback: cbName
+    });
+    script.src = CONFIG.APPS_SCRIPT_URL + "?" + params.toString();
+    script.onerror = ()=>{ cleanup(); resolve(false); };
+    window[cbName] = ()=>{ cleanup(); resolve(true); };
+    function cleanup(){ delete window[cbName]; script.remove(); }
+    setTimeout(()=>{ cleanup(); resolve(false); }, 8000);
+    document.head.appendChild(script);
+  });
+}
+
+// Report vendite — legge dal Google Sheet
+async function fetchSalesReport(tipo){
+  return new Promise((resolve)=>{
+    const cbName = "cb_report_" + Date.now();
+    const script = document.createElement("script");
+    const params = new URLSearchParams({ action:"report", tipo, callback: cbName });
+    script.src = CONFIG.APPS_SCRIPT_URL + "?" + params.toString();
+    script.onerror = ()=>{ cleanup(); resolve(null); };
+    window[cbName] = (data)=>{ cleanup(); resolve(data); };
+    function cleanup(){ delete window[cbName]; script.remove(); }
+    setTimeout(()=>{ cleanup(); resolve(null); }, 10000);
+    document.head.appendChild(script);
+  });
 }
 
 const CONFIG = {
@@ -1508,7 +1563,7 @@ let activeStagione = "";
 let activeKit = "";
 let searchQuery = "";
 let shipZone = "it";
-let perPage = 10;
+let perPage = 100;
 let currentPage = 1;
 
 const fmt = n => n + "\u00A0" + CONFIG.SYMBOL;
@@ -2069,7 +2124,8 @@ function buildOrderMessage(isDemoMode, orderNum){
 }
 async function sendTelegram(isDemoMode){
   if(isDemoMode&&!CONFIG.WA_NOTIFY_IN_DEMO) return;
-  const _oNum = isDemoMode ? null : ("#" + getNextOrderNum());
+  const _rawNum = isDemoMode ? null : await getNextOrderNum();
+  const _oNum = isDemoMode ? null : ("#" + _rawNum);
   const msg=buildOrderMessage(isDemoMode, _oNum);
   try{
     const res=await fetch(`https://api.telegram.org/bot${CONFIG.TG_TOKEN}/sendMessage`,{
@@ -2078,8 +2134,17 @@ async function sendTelegram(isDemoMode){
     });
     const data=await res.json();
     if(!data.ok) console.warn("TG err:",data);
-    // Salva ordine per riepilogo settimanale/mensile
-    if(!isDemoMode && _oNum) saveOrderRecord(_oNum, msg);
+    // Salva ordine nel Google Sheet
+    if(!isDemoMode && _oNum){
+      const addr = getShippingAddress();
+      const items = cartArray();
+      await saveOrderToSheet(_rawNum, {
+        cliente: addr.nome + " " + addr.cognome,
+        email: addr.email,
+        articoli: items.map(it=>it.product.descrizione+"x"+it.qty).join(", "),
+        totale: grandTotal().toFixed(2)
+      });
+    }
   }catch(e){console.warn("TG fail:",e)}
 }
 
@@ -2886,6 +2951,50 @@ async function inviaRecesso(){
     btn.disabled = false;
     btn.textContent = "Invia richiesta di recesso";
     toast("Errore invio. Contattaci su WhatsApp.");
+  }
+}
+
+/* ── REPORT MANUALE ── */
+async function inviaReportManuale(tipo){
+  toast("Caricamento report in corso...");
+  try{
+    const data = await fetchSalesReport(tipo);
+    if(!data || !data.orders){
+      toast("Nessun ordine trovato per il periodo");
+      return;
+    }
+    const orders = data.orders;
+    if(orders.length === 0){
+      // Invia comunque messaggio "nessun ordine"
+      const msg = "📊 <b>REPORT " + tipo.toUpperCase() + " — ARCHIVIO CALCIO</b>\n━━━━━━━━━━━━━━\nNessun ordine nel periodo.";
+      await fetch("https://api.telegram.org/bot"+CONFIG.TG_TOKEN+"/sendMessage",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({chat_id:CONFIG.TG_CHAT_ID,text:msg,parse_mode:"HTML"})
+      });
+      toast("Report inviato — nessun ordine nel periodo");
+      return;
+    }
+    const totale = orders.reduce((s,o)=>s+parseFloat(o.totale||0),0);
+    const fattura = totale * 0.20;
+    const righe = orders.map(o=>
+      `• <b>${o.num}</b> — ${o.cliente} — ${o.articoli} — €${parseFloat(o.totale).toFixed(2)}`
+    ).join("\n");
+    const periodoLabel = tipo==="totale" ? "TOTALE" : tipo==="mensile" ? "MENSILE (ultimi 30gg)" : "SETTIMANALE (ultimi 7gg)";
+    const msg = "📊 <b>REPORT "+periodoLabel+" — ARCHIVIO CALCIO</b>\n"+
+      "━━━━━━━━━━━━━━\n"+
+      righe+"\n"+
+      "━━━━━━━━━━━━━━\n"+
+      "💰 <b>Totale venduto:</b> €"+totale.toFixed(2)+"\n"+
+      "🧾 <b>20% da fatturare:</b> €"+fattura.toFixed(2)+"\n"+
+      "📦 <b>Ordini:</b> "+orders.length;
+    await fetch("https://api.telegram.org/bot"+CONFIG.TG_TOKEN+"/sendMessage",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chat_id:CONFIG.TG_CHAT_ID,text:msg,parse_mode:"HTML"})
+    });
+    toast("✓ Report inviato su Telegram!");
+  }catch(e){
+    toast("Errore invio report");
+    console.warn(e);
   }
 }
 
