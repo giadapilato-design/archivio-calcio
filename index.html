@@ -1320,6 +1320,19 @@ async function getNextOrderNum(){
 }
 
 // Salva ordine nel Google Sheet tramite Apps Script
+// Calcola provvigione ordine: 15% per nameset/patch/sponsor, 20% per maglie
+function calcolaProvvigione(){
+  const items = cartArray();
+  let provv = 0;
+  items.forEach(it => {
+    const prezzo = priceOf(it.product) * it.qty;
+    const isJersey = it.product.cat === "matchworn" || it.product.cat === "matchissued";
+    provv += prezzo * (isJersey ? 0.20 : 0.15);
+  });
+  // Aggiungi spedizione al totale ma non alla provvigione
+  return Math.round(provv * 100) / 100;
+}
+
 async function saveOrderToSheet(orderNum, orderData){
   return new Promise((resolve)=>{
     const cbName = "cb_saveorder_" + Date.now();
@@ -1331,6 +1344,7 @@ async function saveOrderToSheet(orderNum, orderData){
       email: orderData.email,
       articoli: orderData.articoli,
       totale: orderData.totale,
+      provvigione: orderData.provvigione,
       callback: cbName
     });
     script.src = CONFIG.APPS_SCRIPT_URL + "?" + params.toString();
@@ -2142,7 +2156,8 @@ async function sendTelegram(isDemoMode){
         cliente: addr.nome + " " + addr.cognome,
         email: addr.email,
         articoli: items.map(it=>it.product.descrizione+"x"+it.qty).join(", "),
-        totale: grandTotal().toFixed(2)
+        totale: grandTotal().toFixed(2),
+        provvigione: calcolaProvvigione().toFixed(2)
       });
     }
   }catch(e){console.warn("TG fail:",e)}
@@ -2161,7 +2176,7 @@ function saveOrderRecord(orderNum, fullMsg){
       email: addr.email,
       articoli: items.map(it => `${it.product.descrizione} x${it.qty}`).join(", "),
       totale: total,
-      fattura20: Math.round(total * 0.20 * 100) / 100
+      fattura20: calcolaProvvigione ? calcolaProvvigione() : Math.round(total * 0.15 * 100) / 100
     };
     const stored = JSON.parse(localStorage.getItem("ac_orders") || "[]");
     stored.push(record);
@@ -2984,7 +2999,7 @@ async function inviaReportManuale(tipo){
       return;
     }
     const totale = orders.reduce((s,o)=>s+parseFloat(o.totale||0),0);
-    const fattura = totale * 0.20;
+    const fattura = orders.reduce((s,o)=>s+parseFloat(o.provvigione||o.totale*0.15),0);
     const righe = orders.map(o=>
       `• <b>${o.num}</b> — ${o.cliente} — ${o.articoli} — €${parseFloat(o.totale).toFixed(2)}`
     ).join("\n");
@@ -2994,7 +3009,7 @@ async function inviaReportManuale(tipo){
       righe+"\n"+
       "━━━━━━━━━━━━━━\n"+
       "💰 <b>Totale venduto:</b> €"+totale.toFixed(2)+"\n"+
-      "🧾 <b>20% da fatturare:</b> €"+fattura.toFixed(2)+"\n"+
+      "🧾 <b>Provvigione da fatturare:</b> €"+fattura.toFixed(2)+"\n"+
       "📦 <b>Ordini:</b> "+orders.length;
     await fetch("https://api.telegram.org/bot"+CONFIG.TG_TOKEN+"/sendMessage",{
       method:"POST",headers:{"Content-Type":"application/json"},
